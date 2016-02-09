@@ -1,12 +1,12 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Chinook Project Template
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
 // File    : StateMachine.c
 // Author  : Mikael Ducharme
-// Date    : 2015-02-25
+// Date    : 2016-01-28
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
@@ -27,6 +27,24 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
+UINT16 countTo50Ms  = 0;
+UINT16 countTo1S    = 0;
+UINT16 countTo1Ms   = 0;
+UINT16 countTo100Ms = 0;
+UINT32 dataId    = 0;
+UINT8  samplesCount = 0;
+float temp = 0.0f;
+
+extern volatile BOOL oCapture5;
+extern volatile BOOL oCapture4;
+extern volatile BOOL oCapture3;
+
+extern volatile BOOL oNewCanGear;
+extern volatile BOOL oNewCanPitch;
+extern volatile BOOL oNewCanBatteryVoltage;
+extern volatile BOOL oNewCanBatteryCurrent;
+
+extern volatile BOOL oNewAdcAvailable;
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -56,6 +74,7 @@ void StateScheduler(void)
   /*
    * DEVELOPPER CODE HERE
    */
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state = StateDataAcq
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -144,11 +163,18 @@ void StateInit(void)
 //  INIT_CAN;
 //  INIT_I2C;
   START_INTERRUPTS;
-
-  initFlag = 1;
+  
   LED_CHARGE_OFF;
+  LED_EEGACQ_OFF;
+  LED_DEBUG1_OFF;
+  LED_DEBUG2_OFF;
+  LED_DEBUG3_OFF;
+  LED_STATUS_OFF;
+  LED_ERROR_OFF;
+  LED_CAN_OFF;
+  
+  initFlag = 1;
 }
-
 
 //===============================================================
 // Name     : StateDataAcq
@@ -160,40 +186,63 @@ void StateDataAcq(void)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // VARIABLE DECLARATIONS
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  LED_DEBUG1_TOGGLE;
+
   
-  sUartLineBuffer_t  uart4Data =  {
-                                    .buffer = {0}
-                                   ,.length =  0
-                                  };
-  
-  INT32 err = 0;
-  
-  if (Uart.Var.oIsRxDataAvailable[UART4])                 // Check if RX interrupt occured
-  {
-    err = Uart.GetRxFifoBuffer(UART4, &uart4Data, FALSE); // put received data in uart4Data
-    if (err >= 0)                                         // If no error occured
-    {
-      Skadi.GetCmdMsgFifo();                              // Use this line if you use UART interrupts and update the UART used  
-      Uart.PutTxFifoBuffer(UART4, &uart4Data);            // Put data received in TX FIFO buffer
-    }
-  }
-  
-  
+
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // FIRST PART OF STATE
   // Developper should add a small description of expected behavior
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+  if(oNewAdcAvailable)
+  {
+    oNewAdcAvailable = 0;
+  }
+
+  if(oNewCanGear)
+  {
+    oNewCanGear = 0;
+  }
+
+  if(oNewCanPitch)
+  {
+    oNewCanPitch = 0;
+  }
+  if(oNewCanBatteryVoltage)
+  {
+    oNewCanBatteryVoltage = 0;
+  }
+  if(oNewCanBatteryCurrent)
+  {
+    oNewCanBatteryCurrent = 0;
+  }
+
+  if(oCapture5)
+  {
+    oCapture5 = 0;
+  }
+
+  if(oCapture4)
+  {
+    oCapture4 = 0;
+//    LED_DEBG0_TOGGLE;
+//    LED_DEBG3_TOGGLE;
+//    LED_CAN_TOGGLE;
+//    LED_ERROR_TOGGLE;
+//    LED_STATUS_TOGGLE;
+  }
+
+  if(oCapture3)
+  {
+    oCapture3 = 0;
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // SECOND PART OF STATE
   // Developper should add a small description of expected behavior
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 }
-  
-
-
 
 //===============================================================
 // Name     : StateDataAvg
@@ -211,12 +260,37 @@ void StateDataAvg(void)
   // VALIDITY CHECK
   // Flag is set to 0 and counters are incremented by 1
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  o100UsFlag = 0;
+  countTo1Ms++;
+  countTo50Ms++;
+  countTo100Ms++;
+  countTo1S++;
+  
+//    LED_DEBG0_TOGGLE;
+//    LED_DEBG3_TOGGLE;
+//    LED_CAN_TOGGLE;
+//    LED_ERROR_TOGGLE;
+//    LED_STATUS_TOGGLE;
 
     
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // AVERAGING OF DATA
   // Data is sampled every 1 ms and averaged every 100 ms
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  if(countTo1Ms >= ONE_MS)
+  {
+    samplesCount++;
+    
+    if(samplesCount <= SAMPLES_PER_AVERAGE)
+    {
+      if(samplesCount == SAMPLES_PER_AVERAGE)
+      {
+
+
+        samplesCount = 0;
+      }
+    }
+  }
 
   dataAvgFlag = 1;
 }
@@ -240,6 +314,42 @@ void StateDataOutput(void)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //  Skadi.GetCmdMsgFifo();
+
+  if(countTo50Ms >= 499)
+  {
+//    temp++;
+//    Can.SendFloat(CAN1, TURBINE_RPM_ID, temp);
+    countTo50Ms = 0;
+  }
+
+  if(countTo100Ms >= 999)
+  {
+
+    
+    buffer.length = sprintf(buffer.buffer,"test");
+    do
+      {
+        Uart.PutTxFifoBuffer(UART6, &buffer);
+      } while (err < 0);
+    countTo100Ms = 0;
+  }
+
+  if(countTo1S >= 9999 )
+  {
+//    PrintWindSpeed((sSensor_t *) &sSensor);
+//    PrintWindDirection((sSensor_t *) &sSensor);
+//    PrintWheelRpm((sSensor_t *) &sSensor);
+//    PrintTurbineRpm((sSensor_t *) &sSensor);
+//    PrintTorque((sSensor_t *) &sSensor);
+//    PrintThrust((sSensor_t *) &sSensor);
+
+    countTo1S = 0;
+  }
+  
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // SECOND PART OF STATE
+  // Developper should add a small description of expected behavior
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   outputFlag = 1;
 
 }

@@ -1,12 +1,12 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Chinook Project Template
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
 // File    : Setup.c
-// Author  : Frederic Chasse
-// Date    : 2015-01-03
+// Author  : Mikael Ducharme
+// Date    : 2016-01-28
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
@@ -67,27 +67,27 @@ void InitTimer(void)
   timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
   if (timerCounterValue < 0)
   {
-//    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+
   }
   timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
   if (timerCounterValue < 0)
   {
-//    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+
   }
   timerCounterValue = Timer.Open(TIMER_3, 500, SCALE_MS);   // Open Timer 3 with a period of 500 ms
   if (timerCounterValue < 0)
   {
-//    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+
   }
   timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
   if (timerCounterValue < 0)
   {
-//    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+
   }
   timerCounterValue = Timer.Open(TIMER_5, 200, SCALE_MS);   // Open Timer 5 with a period of 100 us, used for averaging state
   if (timerCounterValue < 0)
   {
-//    Port.A.SetBits(BIT_3);    // LED4 on MAX32
+
   }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -331,19 +331,6 @@ void InitCan(void)
    
    Can.ConfigInterrupt(CAN1, CAN1_INTERRUPT_PRIORITY, CAN1_INTERRUPT_SUBPRIORITY);
    
-  /**Setup par defaut.
-   * CAN_CHANNEL0
-   * Mode: TX
-   * Type: SID
-   *
-   * CAN_CHANNEL2
-   * Mode: RX
-   * CAN_FILTER0: 0xC1, this configures the filter to accept with ID 0xC1
-   * CAN_FILTER_MASK0: 0x00, Configure CAN1 Filter Mask 0 to comprare no bits
-   * */
-   Can.Initialize(CAN2, Can2MessageFifoArea, CAN_NB_CHANNELS, CAN_BUFFER_SIZE, FALSE);
-   
-   Can.ConfigInterrupt(CAN2, CAN2_INTERRUPT_PRIORITY, CAN2_INTERRUPT_SUBPRIORITY);
 }
 
 
@@ -462,14 +449,14 @@ void InitInputCapture(void)
   // Capture every rising edge, 1 interrupt each capture, use the 32 bits Timer 23, capture the first rising edge, Input Capture ON
 //  UINT16 config = IC_EVERY_RISE_EDGE | IC_INT_1CAPTURE | IC_CAP_32BIT | IC_FEDGE_RISE | IC_ON;
 
-  InputCapture.Open(IC1, config);
-  InputCapture.Open(IC2, config);
+//  InputCapture.Open(IC1, config);
+//  InputCapture.Open(IC2, config);
   InputCapture.Open(IC3, config);
   InputCapture.Open(IC4, config);
   InputCapture.Open(IC5, config);
 
-  InputCapture.ConfigInterrupt(IC1, IC1_INTERRUPT_PRIORITY, IC1_INTERRUPT_SUBPRIORITY);
-  InputCapture.ConfigInterrupt(IC2, IC2_INTERRUPT_PRIORITY, IC2_INTERRUPT_SUBPRIORITY);
+//  InputCapture.ConfigInterrupt(IC1, IC1_INTERRUPT_PRIORITY, IC1_INTERRUPT_SUBPRIORITY);
+//  InputCapture.ConfigInterrupt(IC2, IC2_INTERRUPT_PRIORITY, IC2_INTERRUPT_SUBPRIORITY);
   InputCapture.ConfigInterrupt(IC3, IC3_INTERRUPT_PRIORITY, IC3_INTERRUPT_SUBPRIORITY);
   InputCapture.ConfigInterrupt(IC4, IC4_INTERRUPT_PRIORITY, IC4_INTERRUPT_SUBPRIORITY);
   InputCapture.ConfigInterrupt(IC5, IC5_INTERRUPT_PRIORITY, IC5_INTERRUPT_SUBPRIORITY);
@@ -500,25 +487,25 @@ void StartInterrupts(void)
 // enabled when writing to the user's TX FIFO buffer
 // with Uart.PutTxFifoBuffer(...)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Uart.EnableRxInterrupts (UART1);  // Enable RX Interrupts for UART1
-  Uart.DisableTxInterrupts(UART1);  // Disable TX Interrupts for UART1
-
-  Uart.EnableRxInterrupts (UART2);  // Enable RX Interrupts for UART2
-  Uart.DisableTxInterrupts(UART2);  // Disable TX Interrupts for UART2
-
-#ifndef __32MX320F128H__            // Uno32 doesn't have UART3-6
-  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
-  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
+//  Uart.EnableRxInterrupts (UART1);  // Enable RX Interrupts for UART1
+//  Uart.DisableTxInterrupts(UART1);  // Disable TX Interrupts for UART1
+//
+//  Uart.EnableRxInterrupts (UART2);  // Enable RX Interrupts for UART2
+//  Uart.DisableTxInterrupts(UART2);  // Disable TX Interrupts for UART2
+//
+//#ifndef __32MX320F128H__            // Uno32 doesn't have UART3-6
+//  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
+//  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
 
   Uart.EnableRxInterrupts (UART4);  // Enable RX Interrupts for UART4
   Uart.DisableTxInterrupts(UART4);  // Disable TX Interrupts for UART4
 
-  Uart.EnableRxInterrupts (UART5);  // Enable RX Interrupts for UART5
-  Uart.DisableTxInterrupts(UART5);  // Disable TX Interrupts for UART5
-
-  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
-  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
-#endif
+//  Uart.EnableRxInterrupts (UART5);  // Enable RX Interrupts for UART5
+//  Uart.DisableTxInterrupts(UART5);  // Disable TX Interrupts for UART5
+//
+//  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
+//  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
+//#endif
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

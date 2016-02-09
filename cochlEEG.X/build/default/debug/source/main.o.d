@@ -1,6 +1,7 @@
 build/default/debug/source/main.o:  \
 source/main.c  \
- source/../headers/Setup.h  \
+ source/../headers/Interrupts.h  \
+source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers/ChinookLib.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookHardwareProfile.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookAdc.h  \
@@ -18,9 +19,7 @@ source/main.c  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookTimer.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h  \
- source/../headers/SkadiFunctions.h  \
-source/../headers//Setup.h  \
- source/../headers/Interrupts.h  \
+ source/../headers/Setup.h  \
 source/../headers/StateMachine.h  \
  source/../headers//StateFunctions.h  \
 source/../headers//Setup.h  \
