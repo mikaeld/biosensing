@@ -84,7 +84,7 @@ void InitTimer(void)
   {
 
   }
-  timerCounterValue = Timer.Open(TIMER_5, 200, SCALE_MS);   // Open Timer 5 with a period of 100 us, used for averaging state
+  timerCounterValue = Timer.Open(TIMER_5, 100, SCALE_US);   // Open Timer 5 with a period of 100 us, used for averaging state
   if (timerCounterValue < 0)
   {
 
@@ -110,7 +110,7 @@ void InitSpi(void)
   INT8 err = 0;
   SpiOpenFlags_t oMasterFlags =   SPI_MASTER_MODE
                                 | SPI_MASTER_SS
-                                | SPI_16_BITS_CHAR
+                                | SPI_8_BITS_CHAR
                                 | SPI_ENHANCED_BUFFER_MODE
                                 | SPI_TX_EVENT_BUFFER_EMPTY
                                 | SPI_RX_EVENT_BUFFER_NOT_EMPTY
@@ -135,20 +135,20 @@ void InitSpi(void)
 //  Spi.ConfigInterrupt(SPI1, SPI1_INTERRUPT_PRIORITY, SPI1_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI1
 #endif
 
-  err = Spi.Open(SPI2, oSlaveFlags, 5e6);   // Open the SPI2 as a slave at a bitrate of 5 MHz
+//  err = Spi.Open(SPI2, oSlaveFlags, 5e6);   // Open the SPI2 as a slave at a bitrate of 4 MHz
+//  if (err < 0)                // Check for errors
+//  {
+//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
+//  }
+//  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 5 MHz
+//  if (err < 0)                // Check for errors
+//  {
+//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
+//  }
+  err = Spi.Open(SPI4, oMasterFlags, 1e6);   // Open the SPI4 as a master at a bitrate of 4 MHz
   if (err < 0)                // Check for errors
   {
-    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-  }
-  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 5 MHz
-  if (err < 0)                // Check for errors
-  {
-    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-  }
-  err = Spi.Open(SPI4, oMasterFlags, 5e6);   // Open the SPI4 as a master at a bitrate of 5 MHz
-  if (err < 0)                // Check for errors
-  {
-    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
+    LED_ERROR_ON;    // Turn on the LED_ERROR
   }
 
   // SPI interrupts not functionnal as of yet
@@ -238,8 +238,8 @@ void InitPorts(void)
                           | BIT_7     // LED_STATUS
                           ); 
 
-  Port.B.SetPinsDigitalOut(BIT_4      // LED_ERROR
-                          | BIT_3     // LED_CAN
+  Port.B.SetPinsDigitalOut(BIT_5      // LED_ERROR
+                          | BIT_4     // LED_CAN
                           );
 
   /* SETUP IO GENERAL PURPOSE SWITCHES */
@@ -250,6 +250,12 @@ void InitPorts(void)
   Port.D.SetPinsDigitalIn(BIT_9);     // UART4_RX
   Port.D.SetPinsDigitalOut(BIT_1);    // UART4_TX
     
+  /* SETUP SPI */
+  Port.F.SetPinsDigitalIn(BIT_4);     // SPI4 MISO
+  Port.F.SetPinsDigitalOut(BIT_5      // SPI4 MOSI
+                          | BIT_3     // SPI4 CS
+                          );
+  Port.B.SetPinsDigitalOut(BIT_14);   // SPI4 CLK
 }
 
 
@@ -267,7 +273,7 @@ void InitUart (void)
 //  Uart.Open(UART2, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 2 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 #ifndef __32MX320F128H__  // Uno32 doesn't have UART3-6
 //  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-  Uart.Open(UART4, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 4 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART4, BAUD115200, oConfig, oFifoMode, oLineControl);   // Open UART 4 as : 115200 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART5, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 5 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 #endif
@@ -308,7 +314,7 @@ void InitUart (void)
 void InitSkadi(void)
 {
 //  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, FALSE);   // This system does not use UART interrupts
-  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, TRUE);   // This system uses UART interrupts
+  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART4, TRUE);   // This system uses UART interrupts
 }
 
 
@@ -451,15 +457,15 @@ void InitInputCapture(void)
 
 //  InputCapture.Open(IC1, config);
 //  InputCapture.Open(IC2, config);
-  InputCapture.Open(IC3, config);
-  InputCapture.Open(IC4, config);
-  InputCapture.Open(IC5, config);
+//  InputCapture.Open(IC3, config);
+//  InputCapture.Open(IC4, config);
+//  InputCapture.Open(IC5, config);
 
 //  InputCapture.ConfigInterrupt(IC1, IC1_INTERRUPT_PRIORITY, IC1_INTERRUPT_SUBPRIORITY);
 //  InputCapture.ConfigInterrupt(IC2, IC2_INTERRUPT_PRIORITY, IC2_INTERRUPT_SUBPRIORITY);
-  InputCapture.ConfigInterrupt(IC3, IC3_INTERRUPT_PRIORITY, IC3_INTERRUPT_SUBPRIORITY);
-  InputCapture.ConfigInterrupt(IC4, IC4_INTERRUPT_PRIORITY, IC4_INTERRUPT_SUBPRIORITY);
-  InputCapture.ConfigInterrupt(IC5, IC5_INTERRUPT_PRIORITY, IC5_INTERRUPT_SUBPRIORITY);
+//  InputCapture.ConfigInterrupt(IC3, IC3_INTERRUPT_PRIORITY, IC3_INTERRUPT_SUBPRIORITY);
+//  InputCapture.ConfigInterrupt(IC4, IC4_INTERRUPT_PRIORITY, IC4_INTERRUPT_SUBPRIORITY);
+//  InputCapture.ConfigInterrupt(IC5, IC5_INTERRUPT_PRIORITY, IC5_INTERRUPT_SUBPRIORITY);
   
 }
 
@@ -529,24 +535,24 @@ void StartInterrupts(void)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable ADC interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Adc.EnableInterrupts();   // Works only when not in manual mode
+//  Adc.EnableInterrupts();   // Works only when not in manual mode
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable InputCapture interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  InputCapture.EnableInterrupt(IC1);
-  InputCapture.EnableInterrupt(IC2);
-  InputCapture.EnableInterrupt(IC3);
-  InputCapture.EnableInterrupt(IC4);
-  InputCapture.EnableInterrupt(IC5);
+//  InputCapture.EnableInterrupt(IC1);
+//  InputCapture.EnableInterrupt(IC2);
+//  InputCapture.EnableInterrupt(IC3);
+//  InputCapture.EnableInterrupt(IC4);
+//  InputCapture.EnableInterrupt(IC5);
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable CAN interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Can.EnableInterrupt(CAN1);
-  Can.EnableInterrupt(CAN2);
+//  Can.EnableInterrupt(CAN1);
+//  Can.EnableInterrupt(CAN2);
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

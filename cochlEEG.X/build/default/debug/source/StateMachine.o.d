@@ -22,4 +22,5 @@ source/../headers//Setup.h  \
  source/../headers//StateFunctions.h  \
 source/../headers//Setup.h  \
  source/../headers/Interrupts.h  \
-source/../headers/SkadiFunctions.h 
+source/../headers/SkadiFunctions.h  \
+ source/../headers/Ads1299.h 

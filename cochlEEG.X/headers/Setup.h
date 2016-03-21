@@ -89,17 +89,17 @@ void StartInterrupts  (void);
 #define LED_DEBUG2_ON       Port.E.ClearBits(BIT_5)
 #define LED_DEBUG3_ON       Port.E.ClearBits(BIT_6)
 #define LED_STATUS_ON       Port.E.ClearBits(BIT_7)
-#define LED_ERROR_ON        Port.B.ClearBits(BIT_4)
-#define LED_CAN_ON          Port.B.ClearBits(BIT_3)
+#define LED_ERROR_ON        Port.B.ClearBits(BIT_5)
+#define LED_CAN_ON          Port.B.ClearBits(BIT_4)
 
 #define LED_CHARGE_OFF      Port.E.SetBits(BIT_2)
 #define LED_EEGACQ_OFF      Port.E.SetBits(BIT_3)
 #define LED_DEBUG1_OFF      Port.E.SetBits(BIT_4)
 #define LED_DEBUG2_OFF      Port.E.SetBits(BIT_5)
 #define LED_DEBUG3_OFF      Port.E.SetBits(BIT_6)
-#define LED_STATUS_OFF      Port.E.ClearBits(BIT_7)
-#define LED_ERROR_OFF       Port.B.ClearBits(BIT_4)
-#define LED_CAN_OFF         Port.B.ClearBits(BIT_3)
+#define LED_STATUS_OFF      Port.E.SetBits(BIT_7)
+#define LED_ERROR_OFF       Port.B.SetBits(BIT_5)
+#define LED_CAN_OFF         Port.B.SetBits(BIT_4)
 
 #define LED_CHARGE_TOGGLE   Port.E.ToggleBits(BIT_2)     
 #define LED_EEGACQ_TOGGLE   Port.E.ToggleBits(BIT_3)
@@ -107,8 +107,11 @@ void StartInterrupts  (void);
 #define LED_DEBUG2_TOGGLE   Port.E.ToggleBits(BIT_5)
 #define LED_DEBUG3_TOGGLE   Port.E.ToggleBits(BIT_6)
 #define LED_STATUS_TOGGLE   Port.E.ToggleBits(BIT_7)
-#define LED_ERROR_TOGGLE    Port.B.ToggleBits(BIT_4)
-#define LED_CAN_TOGGLE      Port.B.ToggleBits(BIT_3)
+#define LED_ERROR_TOGGLE    Port.B.ToggleBits(BIT_5)
+#define LED_CAN_TOGGLE      Port.B.ToggleBits(BIT_4)
+
+#define SPI4_CS_HIGH        Port.F.SetBits(BIT_3)
+#define SPI4_CS_LOW         Port.F.ClearBits(BIT_3)
 
 
 //==============================================================================

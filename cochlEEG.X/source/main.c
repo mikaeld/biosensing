@@ -77,27 +77,11 @@ void main(void)
 //  StateInit();
 //  UINT8 count = 0;
 //
-  sUartLineBuffer_t buffer =
-  { .buffer = {0}
-   ,.length =  0
-  };
 
   INT8 err = 0;
 	while(1)  //infinite loop
 	{
-    err = Uart.GetRxFifoBuffer(UART6, &buffer, FALSE);
-    if (buffer.length > 0)
-    {
-      /* analyser buffer*/
-      if(buffer.buffer[0] == 'k'){
-        Can.SendByte(CAN1,0x42, 8);        
-      }
-      if(buffer.buffer[0] == 'l'){
-        Can.SendByte(CAN1,0x42, 0);        
-      }
-
-      buffer.length = 0;
-    }
+    
  
 		// State machine entry & exit point
 		//===========================================================

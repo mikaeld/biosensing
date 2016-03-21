@@ -22,6 +22,7 @@
 #include "..\headers\StateMachine.h"
 #include "..\headers\Interrupts.h"
 #include "..\headers\SkadiFunctions.h"
+#include "..\headers\Ads1299.h"
 
 //==============================================================================
 // VARIABLE DECLARATIONS
@@ -148,11 +149,21 @@ void StateScheduler(void)
 //===============================================================
 void StateInit(void)
 {
-
+  
   INTDisableInterrupts();   // Disable all interrupts of the system.
 
   INIT_PORTS;
-//  INIT_SPI;
+  
+  LED_CHARGE_OFF;
+  LED_EEGACQ_OFF;
+  LED_DEBUG1_OFF;
+  LED_DEBUG2_OFF;
+  LED_DEBUG3_OFF;
+  LED_STATUS_OFF;
+  LED_ERROR_OFF;
+  LED_CAN_OFF;
+  
+  INIT_SPI;
 //  INIT_WDT;
   INIT_TIMER;
 //  INIT_INPUT_CAPTURE;
@@ -164,16 +175,7 @@ void StateInit(void)
 //  INIT_I2C;
   START_INTERRUPTS;
   
-  LED_CHARGE_OFF;
-  LED_EEGACQ_OFF;
-  LED_DEBUG1_OFF;
-  LED_DEBUG2_OFF;
-  LED_DEBUG3_OFF;
-  LED_STATUS_OFF;
-  LED_ERROR_OFF;
-  LED_CAN_OFF;
-  
-  initFlag = 1;
+  initFlag = 1; // INIT STATE COMPLETED
 }
 
 //===============================================================
@@ -187,7 +189,7 @@ void StateDataAcq(void)
   // VARIABLE DECLARATIONS
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-  
+
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // FIRST PART OF STATE
@@ -324,18 +326,18 @@ void StateDataOutput(void)
 
   if(countTo100Ms >= 999)
   {
-
-    
+    LED_DEBUG1_TOGGLE;
     buffer.length = sprintf(buffer.buffer,"test");
     do
       {
-        Uart.PutTxFifoBuffer(UART6, &buffer);
+        Uart.PutTxFifoBuffer(UART4, &buffer);
       } while (err < 0);
     countTo100Ms = 0;
   }
 
   if(countTo1S >= 9999 )
   {
+    LED_DEBUG2_TOGGLE;
 //    PrintWindSpeed((sSensor_t *) &sSensor);
 //    PrintWindDirection((sSensor_t *) &sSensor);
 //    PrintWheelRpm((sSensor_t *) &sSensor);
