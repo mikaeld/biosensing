@@ -23,29 +23,14 @@
 #include "..\headers\Interrupts.h"
 #include "..\headers\SkadiFunctions.h"
 #include "..\headers\Ads1299.h"
+#include "..\headers\StateFunctions.h"
 
 //==============================================================================
 // VARIABLE DECLARATIONS
 //==============================================================================
 
-UINT16 countTo50Ms  = 0;
-UINT16 countTo1S    = 0;
-UINT16 countTo1Ms   = 0;
-UINT16 countTo100Ms = 0;
-UINT32 dataId    = 0;
-UINT8  samplesCount = 0;
 float temp = 0.0f;
-
-extern volatile BOOL oCapture5;
-extern volatile BOOL oCapture4;
-extern volatile BOOL oCapture3;
-
-extern volatile BOOL oNewCanGear;
-extern volatile BOOL oNewCanPitch;
-extern volatile BOOL oNewCanBatteryVoltage;
-extern volatile BOOL oNewCanBatteryCurrent;
-
-extern volatile BOOL oNewAdcAvailable;
+UINT32 test = 93; // 0x5D
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -59,101 +44,124 @@ extern volatile BOOL oNewAdcAvailable;
 void StateScheduler(void)
 {
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateInit
+  // Current state = StateMcuInit
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if (pState == &StateInit)
+  if (pState == &StateMcuInit)
   {
-    if (INIT_2_DATAACQ)
+    if (MCUINIT_2_ADSINIT)
     {
-      pState = &StateDataAcq;  // Transition to DataAcq
+      pState = &StateAdsInit;  // Transition to StateAdsInit
     }
     else
     {
-      pState = &StateInit; // Stay on current state
+      pState = &StateMcuInit; // Stay on current state
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateDataAcq
+  // Current state = StateAdsInit
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateDataAcq)
+  else if (pState == &StateAdsInit)
   {
-    if (DATAACQ_2_DATAAVG)
+    if (ADSINIT_2_ADSCONFIG)
     {
-      pState = &StateDataAvg;  // Transition to DataOutput
+      pState = &StateAdsConfig;  // StateAdsConfig
     }
     else
     {
-      pState = &StateDataAcq;  //Stay on current state
+      pState = &StateAdsInit;  //Stay on current state
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateDataAvg
+  // Current state = StateAdsConfig
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateDataAvg)
+  else if (pState == &StateAdsConfig)
   {
-    if (DATAAVG_2_DATAOUTPUT)
+    if (ADSCONFIG_2_ADSSTANDBY)
     {
-      pState = &StateDataOutput;  // Transition to DataOutput
+      pState = &StateAdsStandBy;  // Transition to StateAdsStandBy
+    }
+    else if (ADSCONFIG_2_DEVSTATE)
+    {
+      pState = &StateDevState;  // Transition to StateDevState
+    }
+    else if (ADSCONFIG_2_READDATACONT)
+    {
+      pState = &StateReadDataCont;  // Transition to StateReadDataCont
     }
     else
     {
-      pState = &StateDataAvg;  //Stay on current state
+      pState = &StateAdsConfig;  //Stay on current state
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateDataOutput
+  // Current state = StateAdsStandBy
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateDataOutput)
+  else if (pState == &StateAdsStandBy)
   {
-    if (DATAOUTPUT_2_DATAACQ)
+    if (ADSSTANDBY_2_ADSCONFIG)
     {
-      pState = &StateDataAcq;  // Transition to DataAcq
+      pState = &StateAdsConfig;  // Transition to StateAdsConfig
     }
     else
     {
-      pState = &StateDataOutput;  // Stay on current state
+      pState = &StateAdsStandBy;  // Stay on current state
     }
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
+  
+    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Current state = StateAdsStandBy
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  else if (pState == &StateDevState)
+  {
+    if (DEVSTATE_2_ADSCONFIG)
+    {
+      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+    }
+    else
+    {
+      pState = &StateDevState;  // Stay on current state
+    }
+  }
+  
+    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  // Current state = StateReadDataCont
+  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  else if (pState == &StateReadDataCont)
+  {
+    if (READDATACONT_2_ADSCONFIG)
+    {
+      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+    }
+    else
+    {
+      pState = &StateReadDataCont;  // Stay on current state
+    }
+  }
 
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state = undetermined
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else
   {
-    pState = &StateInit;   // Go to Init state by default
+    pState = &StateMcuInit;   // Go to Init state by default
   }
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
 }
 
 //===============================================================
-// Name     : StateInit
-// Purpose  : Initialization of the system.
+// Name     : StateMcuInit
+// Purpose  : Initialization routine of the microncontroller IOs.
 //===============================================================
-void StateInit(void)
+void StateMcuInit(void)
 {
-  
+  oMcuInitFlag = 0; // MCU INIT STATE HAS NOT BEEN COMPLETED
+  INT32 err = 0;
   INTDisableInterrupts();   // Disable all interrupts of the system.
-
   INIT_PORTS;
   
+  //Turn all LEDs OFF
   LED_CHARGE_OFF;
   LED_EEGACQ_OFF;
   LED_DEBUG1_OFF;
@@ -163,195 +171,142 @@ void StateInit(void)
   LED_ERROR_OFF;
   LED_CAN_OFF;
   
-  INIT_SPI;
-//  INIT_WDT;
-  INIT_TIMER;
-//  INIT_INPUT_CAPTURE;
-//  INIT_PWM;
-//  INIT_ADC;
   INIT_UART;
+  err = PrintToUart(UART4,"\f"  // Clear terminal
+    "CochlEEG V1.0 - CRITIAS ECOLE DE TECHNOLOGIE SUPERIEURE \r\n"
+    "\tSoftware version 1.0\r\n"
+    "Developped by MIKAEL DUCHARME\r\n");   
+  err = PrintToUart(UART4,
+    "*** PIC32MX795F512H initialization routine ***\r\n"
+    "PORTS Init - DONE\r\n"
+    "UART Init - DONE\r\n");
+  
+  INIT_SPI;
+  err = PrintToUart(UART4,"SPI Init - DONE\r\n");
+  
+//  INIT_WDT;
+//  err = PrintToUart(UART4,"WDT Init - DONE\r\n");
+  
+  INIT_TIMER;
+  err = PrintToUart(UART4,"TIMER Init - DONE\r\n");
+  
+//  INIT_INPUT_CAPTURE;
+//  err = PrintToUart(UART4,"INPUTCAPTURE Init - DONE\r\n");
+  
+//  INIT_PWM;
+//  err = PrintToUart(UART4,"PWM Init - DONE\r\n");
+  
+//  INIT_ADC;
+//  err = PrintToUart(UART4,"ADC Init - DONE\r\n");
+  
   INIT_SKADI;
+  err = PrintToUart(UART4,"SKADI Init - DONE\r\n");
+  
 //  INIT_CAN;
+//  err = PrintToUart(UART4,"CAN Init - DONE\r\n");
+  
 //  INIT_I2C;
+//  err = PrintToUart(UART4,"I2C Init - DONE\r\n");
+  
   START_INTERRUPTS;
+  err = PrintToUart(UART4,"INTERRUPTS STARTED*\r\n");
   
-  initFlag = 1; // INIT STATE COMPLETED
+  LED_CHARGE_ON;
+  Timer.DelayMs(100);
+  LED_CHARGE_OFF;
+  err = PrintToUart(UART4,"*** PIC32MX795F512H initialization routine COMPLETED ***\r\n");
+  
+  oMcuInitFlag = 1; // MCU INIT STATE COMPLETED
 }
 
 //===============================================================
-// Name     : StateDataAcq
-// Purpose  : Data acquisition state, puts all the current values
-//            in the structure
+// Name     : StateAdsInit
+// Purpose  : Initialization routine of the ADS1299
 //===============================================================
-void StateDataAcq(void)
+void StateAdsInit(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // FIRST PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if(oNewAdcAvailable)
+  oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED
+  
+  INT32 err = 0;
+  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
+  
+  ADS_NO_RESET;
+  Timer.DelayMs(1);
+  AdsSDATAC(); // Stop data conversion in order to read and write registers 
+  UINT32 adsIdValue = AdsRREG(ID_REG);  // Read Device ID register (returns 0x3E)
+  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
   {
-    oNewAdcAvailable = 0;
-  }
-
-  if(oNewCanGear)
+    LED_ERROR_ON;
+    err = PrintToUart(UART4,"ERROR READING ADS1299 ID\r\n"
+            "\r\nCheck CochlEEG for possible hardware issue");
+   }
+  else 
   {
-    oNewCanGear = 0;
+    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
+      "*** ADS1299 initialization routine COMPLETED ***\r\n");
+    LED_EEGACQ_ON;
+    Timer.DelayMs(200);
+    LED_EEGACQ_OFF;
+    Timer.DelayMs(200);
+    LED_EEGACQ_ON;
+    Timer.DelayMs(200);
+    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
+    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
   }
-
-  if(oNewCanPitch)
-  {
-    oNewCanPitch = 0;
-  }
-  if(oNewCanBatteryVoltage)
-  {
-    oNewCanBatteryVoltage = 0;
-  }
-  if(oNewCanBatteryCurrent)
-  {
-    oNewCanBatteryCurrent = 0;
-  }
-
-  if(oCapture5)
-  {
-    oCapture5 = 0;
-  }
-
-  if(oCapture4)
-  {
-    oCapture4 = 0;
-//    LED_DEBG0_TOGGLE;
-//    LED_DEBG3_TOGGLE;
-//    LED_CAN_TOGGLE;
-//    LED_ERROR_TOGGLE;
-//    LED_STATUS_TOGGLE;
-  }
-
-  if(oCapture3)
-  {
-    oCapture3 = 0;
-  }
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 }
 
 //===============================================================
-// Name     : StateDataAvg
-// Purpose  : Data averaging state, generates a mean value for each
-//            and puts it in the structure
+// Name     : StateAdsConfig
+// Purpose  : 
 //===============================================================
-void StateDataAvg(void)
+void StateAdsConfig(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  AdsWREG(CONFIG3, 0xE0);
+  AdsWREG(CONFIG1, 0x96);
+  AdsWREG(CONFIG2, 0xC0);
+  AdsWREG(CH1SET, 0x01);
+  AdsWREG(CH2SET, 0x01);
+  AdsWREG(CH3SET, 0x01);
+  AdsWREG(CH4SET, 0x01);
+  AdsWREG(CH5SET, 0x01);
+  AdsWREG(CH6SET, 0x01);
+  AdsWREG(CH7SET, 0x01);
+  AdsWREG(CH8SET, 0x01);
+  AdsSTART();
+  AdsRDATAC();
   
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VALIDITY CHECK
-  // Flag is set to 0 and counters are incremented by 1
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  o100UsFlag = 0;
-  countTo1Ms++;
-  countTo50Ms++;
-  countTo100Ms++;
-  countTo1S++;
-  
-//    LED_DEBG0_TOGGLE;
-//    LED_DEBG3_TOGGLE;
-//    LED_CAN_TOGGLE;
-//    LED_ERROR_TOGGLE;
-//    LED_STATUS_TOGGLE;
-
-    
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // AVERAGING OF DATA
-  // Data is sampled every 1 ms and averaged every 100 ms
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if(countTo1Ms >= ONE_MS)
-  {
-    samplesCount++;
-    
-    if(samplesCount <= SAMPLES_PER_AVERAGE)
-    {
-      if(samplesCount == SAMPLES_PER_AVERAGE)
-      {
-
-
-        samplesCount = 0;
-      }
-    }
-  }
-
-  dataAvgFlag = 1;
+  oDevStateFlag = 1;
+  INT32 err = 0;
+//  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
 }
 
 //===============================================================
-// Name     : StateDataOutput
-// Purpose  : Outputs the value of the structure to the Xbee, SD
-//            Card, CAN, UART
+// Name     : StateAdsStandBy
+// Purpose  : 
 //===============================================================
-void StateDataOutput(void)
+void StateAdsStandBy(void)
 {
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // VARIABLE DECLARATIONS
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  sUartLineBuffer_t buffer = {0};
-  INT8 err = 0;
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // FIRST PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-//  Skadi.GetCmdMsgFifo();
-
-  if(countTo50Ms >= 499)
-  {
-//    temp++;
-//    Can.SendFloat(CAN1, TURBINE_RPM_ID, temp);
-    countTo50Ms = 0;
-  }
-
-  if(countTo100Ms >= 999)
-  {
-    LED_DEBUG1_TOGGLE;
-    buffer.length = sprintf(buffer.buffer,"test");
-    do
-      {
-        Uart.PutTxFifoBuffer(UART4, &buffer);
-      } while (err < 0);
-    countTo100Ms = 0;
-  }
-
-  if(countTo1S >= 9999 )
-  {
-    LED_DEBUG2_TOGGLE;
-//    PrintWindSpeed((sSensor_t *) &sSensor);
-//    PrintWindDirection((sSensor_t *) &sSensor);
-//    PrintWheelRpm((sSensor_t *) &sSensor);
-//    PrintTurbineRpm((sSensor_t *) &sSensor);
-//    PrintTorque((sSensor_t *) &sSensor);
-//    PrintThrust((sSensor_t *) &sSensor);
-
-    countTo1S = 0;
-  }
-  
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // SECOND PART OF STATE
-  // Developper should add a small description of expected behavior
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  outputFlag = 1;
-
+ 
+  oWakeUpFlag = 1;
 }
+
+//===============================================================
+// Name     : StateDevState
+// Purpose  : 
+//===============================================================
+void StateDevState(void)
+{
+
+  LED_EEGACQ_ON;
+}
+
+//===============================================================
+// Name     : StateReadDataCont
+// Purpose  : 
+//===============================================================
+void StateReadDataCont(void)
+{
+
+  oWakeUpFlag = 1;
+}
+

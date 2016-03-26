@@ -30,6 +30,7 @@
 //==============================================================================
 // Public functions prototypes
 //==============================================================================
+UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data);
 void AdsWAKEUP(void);
 void AdsSTANDBY(void);
 void AdsRESET(void);

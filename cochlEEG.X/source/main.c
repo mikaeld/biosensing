@@ -53,7 +53,7 @@ void main(void)
   memcpy( &Chinook.Uart  , &Uart  , sizeof ( struct sChinookUart  ) );
   memcpy( &Chinook.Pwm   , &Pwm   , sizeof ( struct sChinookPwm   ) );
   memcpy( &Chinook.Timer , &Timer , sizeof ( struct sChinookTimer ) );
-//  memcpy( &Chinook.Wdt   , &Wdt   , sizeof ( struct sChinookWdt   ) );
+  memcpy( &Chinook.Wdt   , &Wdt   , sizeof ( struct sChinookWdt   ) );
   memcpy( &Chinook.Adc   , &Adc   , sizeof ( struct sChinookAdc   ) );
   memcpy( &Chinook.Can   , &Can   , sizeof ( struct sChinookCan   ) );
   memcpy( &Chinook.Spi   , &Spi   , sizeof ( struct sChinookSpi   ) );
@@ -72,17 +72,10 @@ void main(void)
 //==============================================================================
 
 // State machine init
-	pState = &StateInit;
-
-//  StateInit();
-//  UINT8 count = 0;
-//
-
+	pState = &StateMcuInit;
   INT8 err = 0;
 	while(1)  //infinite loop
 	{
-    
- 
 		// State machine entry & exit point
 		//===========================================================
 		(*pState)();          // jump to next state

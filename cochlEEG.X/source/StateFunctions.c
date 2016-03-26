@@ -27,7 +27,34 @@
 // State Machine private functions prototypes
 //==============================================================================
 
+/**************************************************************
+ * Function name  : SpiTransfer
+ * Purpose        : Sends data over SPI specified in argument,
+ *                  and empties Rx buffer
+ * Arguments      : SpiNum_t numSpi, const UINT32 data
+ * Returns        : SPI Rx Buffer (UINT32)
+ *************************************************************/
+UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data)
+{
+  Spi.SendCharacter(numSpi, data);
+  while(Spi.IsSpiBusy(numSpi));
+  return Spi.GetCharacter(numSpi);
+}
 
-//==============================================================================
-// State Machine functions
-//==============================================================================
+/**************************************************************
+ * Function name  : PrintToUart
+ * Purpose        : Prints char argument to UART argument
+ * Arguments      : UartModule_t uartModuleId, char *string
+ * Returns        : error INT32
+ *************************************************************/
+INT32 PrintToUart(UartModule_t uartModuleId, char *string)
+{
+  INT32 err = 0;
+  sUartLineBuffer_t buffer;
+  buffer.length = sprintf(buffer.buffer, string);
+    do
+    {
+      err = Uart.PutTxFifoBuffer(uartModuleId, &buffer);
+    } while (err < 0);
+}
+

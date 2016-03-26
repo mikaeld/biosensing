@@ -20,12 +20,6 @@
 //               "..\..\..\ChinookLib\ChinookLib.X\headers\ChinookLib.h"
 //           references an existing file.
 //
-//           Function names can and should be renamed by the user to improve the
-//           readability of the code. Also, the LED used for testing errors in
-//           TimerInit is a LED on the MAX32 development board. Developpers
-//           should test for errors by the means (hardware of software) they
-//           judge are the best.
-//
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #include "..\headers\Setup.h"
@@ -123,18 +117,13 @@ void InitSpi(void)
                                 | SPI_RX_EVENT_BUFFER_NOT_EMPTY
                 ;
 
-#ifdef __32MX795F512L__   // SPI1 only on this device
-
-  err = Spi.Open(SPI1, oSlaveFlags, 5e6);   // Open the SPI1 as a slave at a bitrate of 5 MHz
-  if (err < 0)                // Check for errors
-  {
-    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-  }
-
+//  err = Spi.Open(SPI1, oSlaveFlags, 5e6);   // Open the SPI1 as a slave at a bitrate of 5 MHz
+//  if (err < 0)                // Check for errors
+//  {
+//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
+//  }
   // SPI interrupts not functionnal as of yet
 //  Spi.ConfigInterrupt(SPI1, SPI1_INTERRUPT_PRIORITY, SPI1_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI1
-#endif
-
 //  err = Spi.Open(SPI2, oSlaveFlags, 5e6);   // Open the SPI2 as a slave at a bitrate of 4 MHz
 //  if (err < 0)                // Check for errors
 //  {
@@ -240,6 +229,9 @@ void InitPorts(void)
 
   Port.B.SetPinsDigitalOut(BIT_5      // LED_ERROR
                           | BIT_4     // LED_CAN
+                          | BIT_10    // ADS1299 RESET
+                          | BIT_11
+                          | BIT_12
                           );
 
   /* SETUP IO GENERAL PURPOSE SWITCHES */
@@ -271,40 +263,31 @@ void InitUart (void)
 
 //  Uart.Open(UART1, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 1 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART2, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 2 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-#ifndef __32MX320F128H__  // Uno32 doesn't have UART3-6
 //  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
   Uart.Open(UART4, BAUD115200, oConfig, oFifoMode, oLineControl);   // Open UART 4 as : 115200 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART5, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 5 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-#endif
 
 //  Uart.EnableRx(UART1);
 //  Uart.EnableRx(UART2);
-#ifndef __32MX320F128H__  // Uno32 doesn't have UART3-6
 //  Uart.EnableRx(UART3);
   Uart.EnableRx(UART4);
 //  Uart.EnableRx(UART5);
 //  Uart.EnableRx(UART6);
-#endif
 
 //  Uart.EnableTx(UART1);
 //  Uart.EnableTx(UART2);
-#ifndef __32MX320F128H__  // Uno32 doesn't have UART3-6
 //  Uart.EnableTx(UART3);
   Uart.EnableTx(UART4);
 //  Uart.EnableTx(UART5);
 //  Uart.EnableTx(UART6);
-#endif
 
 //  Uart.ConfigInterrupt(UART1, UART1_INTERRUPT_PRIORITY, UART1_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART2, UART2_INTERRUPT_PRIORITY, UART2_INTERRUPT_SUBPRIORITY);
-#ifndef __32MX320F128H__  // Uno32 doesn't have UART3-6
 //  Uart.ConfigInterrupt(UART3, UART3_INTERRUPT_PRIORITY, UART3_INTERRUPT_SUBPRIORITY);
   Uart.ConfigInterrupt(UART4, UART4_INTERRUPT_PRIORITY, UART4_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART5, UART5_INTERRUPT_PRIORITY, UART5_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART6, UART6_INTERRUPT_PRIORITY, UART6_INTERRUPT_SUBPRIORITY);
-#endif
-  
 }
 
 
@@ -352,15 +335,6 @@ void InitI2c(void)
   {
 //    LED_ERROR_ON;
   }
-#ifndef __32MX795F512H__          // Chinook boards don't have I2C2
-  I2c.Open(I2C2, I2C_FREQ_400K);
-  err = I2c.ConfigInterrupt(I2C2, I2C2_INTERRUPT_PRIORITY, I2C2_INTERRUPT_SUBPRIORITY);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-#endif
-#ifndef __32MX320F128H__          // Uno32 doesn't have I2C3 and I2C4
   I2c.Open(I2C3, I2C_FREQ_400K);
   err = I2c.ConfigInterrupt(I2C3, I2C3_INTERRUPT_PRIORITY, I2C3_INTERRUPT_SUBPRIORITY);
   if (err < 0)
@@ -379,7 +353,6 @@ void InitI2c(void)
   {
 //    LED_ERROR_ON;
   }
-#endif
 }
 
 
@@ -499,7 +472,6 @@ void StartInterrupts(void)
 //  Uart.EnableRxInterrupts (UART2);  // Enable RX Interrupts for UART2
 //  Uart.DisableTxInterrupts(UART2);  // Disable TX Interrupts for UART2
 //
-//#ifndef __32MX320F128H__            // Uno32 doesn't have UART3-6
 //  Uart.EnableRxInterrupts (UART3);  // Enable RX Interrupts for UART3
 //  Uart.DisableTxInterrupts(UART3);  // Disable TX Interrupts for UART3
 
@@ -511,16 +483,13 @@ void StartInterrupts(void)
 //
 //  Uart.EnableRxInterrupts (UART6);  // Enable RX Interrupts for UART6
 //  Uart.DisableTxInterrupts(UART6);  // Disable TX Interrupts for UART6
-//#endif
 
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable SPI interrupts             // Not functionnal yet
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//#ifdef __32MX795F512L__   // SPI1 only on this device
 //  Spi.EnableRxInterrupts(SPI1);   // Enable RX Interrupts for SPI1
 //  Spi.EnableTxInterrupts(SPI1);   // Enable TX Interrupts for SPI1
-//#endif
 //
 //  Spi.EnableRxInterrupts(SPI2);   // Enable RX Interrupts for SPI2
 //  Spi.EnableTxInterrupts(SPI2);   // Enable TX Interrupts for SPI2
@@ -573,24 +542,6 @@ void StartInterrupts(void)
   {
 //    LED_ERROR_ON;
   }
-#ifndef __32MX795F512H__          // Chinook boards don't have I2C2
-  err = I2c.EnableInterrupt (I2C2, I2C_MASTER_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  err = I2c.DisableInterrupt(I2C2, I2C_SLAVE_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  err = I2c.DisableInterrupt(I2C2, I2C_BUS_COLLISION_INTERRUPT);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-#endif
-#ifndef __32MX320F128H__          // Uno32 doesn't have I2C3, I2C4 and I2C5
   err = I2c.EnableInterrupt (I2C3, I2C_MASTER_INTERRUPT);
   if (err < 0)
   {
@@ -638,8 +589,6 @@ void StartInterrupts(void)
   {
 //    LED_ERROR_ON;
   }
-#endif
-
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable multi-vector interrupts

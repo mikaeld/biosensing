@@ -30,11 +30,15 @@
 //==============================================================================
 // State Machine public function prototypes
 //==============================================================================
-void StateInit      (void);   // Initialization state of the system
-void StateDataAcq   (void);   // State for the acquisition of data, put into processed data structure
-void StateDataAvg   (void);    // State for the averaging of data
-void StateDataOutput(void);   // State for the output of processed data into SD Card, Xbee and CAN Bus
-void StateScheduler (void);   // State Scheduler. Decides which state is next
+void StateMcuInit     (void); // Initialization state for microcontroller
+void StateAdsInit     (void); // Initialization state for ADS1299
+void StateAdsConfig   (void); // Configuration state for ADS1299 (parameters
+                              // set from EEPROM, Serial Port, Buttons, etc.)
+void StateReadDataCont(void); // Read Data Continuously mode, live data
+void StateAdsStandBy  (void); // ADS1299 is in standby
+void StateDevState    (void); // Development state (for coding purposes)
+void StateError       (void); // Error state, goes back to StateMcuInit()
+void StateScheduler   (void); // State Scheduler. Decides which state is next
                               // depending on current state and flags. Used as a function
 
 
@@ -42,7 +46,6 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 // Macro definitions
 //==============================================================================
 
-#define SAMPLES_PER_AVERAGE 100
 #define ONE_MS 10   // 10*100us = 1ms (Timer5 is 100us)
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -54,10 +57,25 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 // conditions tested in the defines should be changed
 // to proper tests
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define INIT_2_DATAACQ          initFlag    // StateInit/StateInitRtc to State1
-#define DATAACQ_2_DATAAVG       o100UsFlag  // StateDataAcq to StateDataAvg
-#define DATAAVG_2_DATAOUTPUT    dataAvgFlag // StateDataAvg to StateDataOutput
-#define DATAOUTPUT_2_DATAACQ    outputFlag  // StateDataOutput to StateDataACQ
+
+//%%MCU INIT TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define MCUINIT_2_ADSINIT         oMcuInitFlag    // StateMcuInit to StateAdsInit
+
+//%%ADS INIT TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define ADSINIT_2_ADSCONFIG       oAdsInitFlag    // StateAdsInit to StateAdsConfig
+
+//%%CONFIG TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%%%%STANDBY MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define ADSCONFIG_2_ADSSTANDBY    oStandByFlag    // StateAdsConfig to StateAdsStandBy
+#define ADSSTANDBY_2_ADSCONFIG    oWakeUpFlag     // StateAdsStandBy to StateAdsConfig
+
+//%%%%%DEV STATE MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define ADSCONFIG_2_DEVSTATE      oDevStateFlag   // StateAdsConfig to StateDevState
+#define DEVSTATE_2_ADSCONFIG      !oDevStateFlag  // StateDevState to StateAdsConfig
+
+//%%%%%DEV STATE MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define ADSCONFIG_2_READDATACONT  oRDataCFlag     // StateAdsConfig to StateReadDataCont
+#define READDATACONT_2_ADSCONFIG  oSDataCFlag     // StateReadDataCont to StateAdsConfig
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -66,10 +84,13 @@ void StateScheduler (void);   // State Scheduler. Decides which state is next
 //==============================================================================
 void (*pState)(void);       // State pointer, used to navigate between states
 
-volatile  INT8  initFlag     // Flag indicating if the peripherals' initialization has been completed
-               ,o100UsFlag  // Flag indicating if the raw data acquisition has been completed
-               ,dataAvgFlag  // Flag indicating if the averaging of data has been completed
-               ,outputFlag   // Flag indicatinf if the processed data has been outputed to SDCARD, CAN BUS, XBEE
+volatile  INT8  oMcuInitFlag  // Flag indication MCU init routine is done
+               ,oAdsInitFlag  // Flag indicating ADS1299 init routine is done
+               ,oStandByFlag  // Flag indicating StandBy cmd was issued to ADS1299
+               ,oWakeUpFlag   // Flag indicating WakeUp cmd was issued to ADS1299 (resume from StandBy)
+               ,oDevStateFlag // Flag indicating state used for development was called
+               ,oRDataCFlag   // Flag indicating Read Data Continuously mode was called
+               ,oSDataCFlag   // Flag indicating Stop Read Data Continuously mode was called
                ;
 
 #endif	/* __STATE_MACHINE_H__ */

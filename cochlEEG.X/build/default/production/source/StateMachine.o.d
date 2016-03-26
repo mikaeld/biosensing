@@ -15,6 +15,7 @@ source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookSkadi.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookSpi.h  \
+ source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookCan.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookTimer.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h  \
@@ -22,4 +23,5 @@ source/../headers//Setup.h  \
 source/../headers//Setup.h  \
  source/../headers/Interrupts.h  \
 source/../headers/SkadiFunctions.h  \
- source/../headers/Ads1299.h 
+ source/../headers/Ads1299.h  \
+source/../headers/StateFunctions.h 

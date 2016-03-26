@@ -21,6 +21,7 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #include "../headers/Ads1299.h"
+#include "../headers/Setup.h"
 
 
 //==============================================================================
@@ -37,6 +38,44 @@
 //==============================================================================
 // Functions
 //==============================================================================
+
+//  deactivate the given channel.
+//void deactivateChannel(int N) 
+//{
+//  BYTE setting, startChan, endChan;  
+//  
+//  AdsSDATAC(); 
+//  Timer.DelayMs(1); // exit Read Data Continuous mode to communicate with ADS
+//  N = constrain(N-1,startChan,endChan-1);  //subtracts 1 so that we're counting from 0, not 1
+//
+//  setting = RREG(CH1SET+(N-startChan),targetSS); delay(1); // get the current channel settings
+//  bitSet(setting,7);     // set bit7 to shut down channel
+//  bitClear(setting,3);   // clear bit3 to disclude from SRB2 if used
+//  WREG(CH1SET+(N-startChan),setting,targetSS); delay(1);     // write the new value to disable the channel
+//  
+//  //remove the channel from the bias generation...
+//  setting = RREG(BIAS_SENSP,targetSS); delay(1); //get the current bias settings
+//  bitClear(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
+//  WREG(BIAS_SENSP,setting,targetSS); delay(1);   //send the modified byte back to the ADS
+//
+//  setting = RREG(BIAS_SENSN,targetSS); delay(1); //get the current bias settings
+//  bitClear(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
+//  WREG(BIAS_SENSN,setting,targetSS); delay(1);   //send the modified byte back to the ADS
+//  
+//  leadOffSettings[N][0] = leadOffSettings[N][1] = NO;
+//  changeChannelLeadOffDetect(N+1);
+//} 
+
+
+////reset all the ADS1299's settings. Stops all data acquisition
+//void rebootAds(void) 
+//{
+//  AdsRESET();             // send RESET command to default all registers
+//  AdsSDATAC();            // exit Read Data Continuous mode to communicate with ADS
+//  Time.DelayMs(1);
+//  // turn off all channels
+//  deactivateChannel(chan);
+//}
 
 /**************************************************************
  * Function name  : TemplateFunction
@@ -65,10 +104,10 @@ void AdsWAKEUP(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _WAKEUP);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _WAKEUP);
   SPI4_CS_HIGH;
   Timer.DelayMs(1);
+ 
 }
 
 /**************************************************************
@@ -82,8 +121,7 @@ void AdsSTANDBY(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _STANDBY);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _STANDBY);
   SPI4_CS_HIGH;
 }
 
@@ -98,8 +136,7 @@ void AdsRESET(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _RESET);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _RESET);
   SPI4_CS_HIGH;
   Timer.DelayMs(1);
 }
@@ -115,8 +152,7 @@ void AdsSTART(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _START);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _START);
   SPI4_CS_HIGH;  
 }
 
@@ -131,8 +167,7 @@ void AdsSTOP(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _STOP);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _STOP);
   SPI4_CS_HIGH;  
 }
 
@@ -147,8 +182,7 @@ void AdsRDATAC(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _RDATAC);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _RDATAC);
   SPI4_CS_HIGH;  
   Timer.DelayMs(1);  
 }
@@ -164,11 +198,30 @@ void AdsSDATAC(void)
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, _SDATAC);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, _SDATAC);
   SPI4_CS_HIGH;  
   Timer.DelayMs(1);  
 }
+
+/**************************************************************
+ * Function name  : AdsRREG
+ * Purpose        : Reads register at address, returns its value
+ * Arguments      : BYTE address
+ * Returns        : Value of register specified as argument
+ *************************************************************/
+UINT32 AdsRREG(BYTE address) 
+  {    
+    UINT32 regValue = 0; 
+    BYTE opcode = address + 0x20;   // RREG expects 001rrrrr where rrrrr = _address
+    SPI4_CS_HIGH;
+    while(Spi.IsSpiBusy(SPI4));
+    SPI4_CS_LOW;                //  open SPI
+    SpiTransfer(SPI4, opcode);  // Send opcode
+    SpiTransfer(SPI4, 0x00);    // Number of registers to read -1 
+    regValue = SpiTransfer(SPI4, 0x00); // Send dummy data and return Rx buffer contents
+    SPI4_CS_HIGH;  
+    return regValue;     // return requested register value
+  }
 
 /**************************************************************
  * Function name  : AdsWREG
@@ -176,18 +229,16 @@ void AdsSDATAC(void)
  * Arguments      : BYTE address, BYTE value
  * Returns        : None.
  *************************************************************/
-void AdsWREG(BYTE _address, BYTE _value) 
+void AdsWREG(BYTE address, BYTE regValue) 
 { 
-  BYTE opcode1 = _address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
+  BYTE opcode = address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
   SPI4_CS_HIGH;
   while(Spi.IsSpiBusy(SPI4));
   SPI4_CS_LOW;
-  Spi.SendCharacter(SPI4, opcode1);
-  Spi.SendCharacter(SPI4, 0x00);    // Number of registers to write -1
-  Spi.SendCharacter(SPI4, _value);
-  while(Spi.IsSpiBusy(SPI4));
+  SpiTransfer(SPI4, opcode);
+  SpiTransfer(SPI4, 0x00);    // Number of registers to write -1
+  SpiTransfer(SPI4, regValue);
   SPI4_CS_HIGH;
-//  regData[_address] = _value;     //  update the mirror array
 }
 
 

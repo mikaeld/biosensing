@@ -49,7 +49,6 @@ volatile BOOL  oFirstTimeInCapture3 = 1
               ,oFirstTimeInCapture4 = 1
               ,oFirstTimeInCapture5 = 1
               ;
-volatile extern o100UsFlag;
 
 /*******************************************************************************
  ***********************                               *************************
@@ -119,7 +118,7 @@ void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_5_VECTOR, T5_INTERRUPT_PRIORITY) Timer5InterruptHandler(void)
 {
-  o100UsFlag = 1;
+  //o100UsFlag = 1;
 
 
   // Increment the number of overflows from this timer. Used primarily by Input Capture

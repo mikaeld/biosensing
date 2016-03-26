@@ -99,5 +99,5 @@ void LedCan(sSkadi_t *skadi, sSkadiArgs_t args)
  *************************************************************/
 void ReInitSystem(sSkadi_t *skadi, sSkadiArgs_t args)
 {
-  StateInit();
+  StateMcuInit();
 }
