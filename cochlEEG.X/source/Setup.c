@@ -233,7 +233,8 @@ void InitPorts(void)
                           | BIT_11
                           | BIT_12
                           );
-
+  Port.B.SetPinsDigitalIn(BIT_13);     // ADS_DRDY
+  
   /* SETUP IO GENERAL PURPOSE SWITCHES */
   Port.E.SetPinsDigitalIn(BIT_0       // SW1A
                           | BIT_1     // SW1B

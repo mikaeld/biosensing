@@ -110,6 +110,7 @@ void StartInterrupts  (void);
 #define SPI4_CS_HIGH        Port.F.SetBits(BIT_3)
 #define SPI4_CS_LOW         Port.F.ClearBits(BIT_3)
 
+#define ADS_DRDY            Port.B.ReadBits(BIT_13)
 #define ADS_RESET           Port.B.ClearBits(BIT_10)
 #define ADS_NO_RESET        Port.B.SetBits(BIT_10)  // On hardware version 1.0, 
                                                     // breakout pin RB10 must be

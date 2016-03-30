@@ -58,3 +58,16 @@ INT32 PrintToUart(UartModule_t uartModuleId, char *string)
     } while (err < 0);
 }
 
+BYTE constrain(BYTE x, BYTE a, BYTE b)
+{
+  if(x < a) 
+  {
+    return a;
+  }
+  else if(b < x) 
+  {
+    return b;
+  }
+   else return x;
+}
+

@@ -227,32 +227,32 @@ void StateAdsInit(void)
 {
   oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED
   
-  INT32 err = 0;
-  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
-  
-  ADS_NO_RESET;
-  Timer.DelayMs(1);
-  AdsSDATAC(); // Stop data conversion in order to read and write registers 
-  UINT32 adsIdValue = AdsRREG(ID_REG);  // Read Device ID register (returns 0x3E)
-  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
-  {
-    LED_ERROR_ON;
-    err = PrintToUart(UART4,"ERROR READING ADS1299 ID\r\n"
-            "\r\nCheck CochlEEG for possible hardware issue");
-   }
-  else 
-  {
-    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
-      "*** ADS1299 initialization routine COMPLETED ***\r\n");
-    LED_EEGACQ_ON;
-    Timer.DelayMs(200);
-    LED_EEGACQ_OFF;
-    Timer.DelayMs(200);
-    LED_EEGACQ_ON;
-    Timer.DelayMs(200);
-    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
-    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
-  }
+//  INT32 err = 0;
+//  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
+//  
+//  ADS_NO_RESET;
+//  Timer.DelayMs(1);
+//  AdsSDATAC(); // Stop data conversion in order to read and write registers 
+//  UINT32 adsIdValue = AdsRREG(ID_REG);  // Read Device ID register (returns 0x3E)
+//  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
+//  {
+//    LED_ERROR_ON;
+//    err = PrintToUart(UART4,"ERROR READING ADS1299 ID\r\n"
+//            "\r\nCheck CochlEEG for possible hardware issue");
+//   }
+//  else 
+//  {
+//    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
+//      "*** ADS1299 initialization routine COMPLETED ***\r\n");
+//    LED_EEGACQ_ON;
+//    Timer.DelayMs(200);
+//    LED_EEGACQ_OFF;
+//    Timer.DelayMs(200);
+//    LED_EEGACQ_ON;
+//    Timer.DelayMs(200);
+//    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
+//    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
+//  }
 }
 
 //===============================================================
@@ -261,20 +261,21 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
-  AdsWREG(CONFIG3, 0xE0);
-  AdsWREG(CONFIG1, 0x96);
-  AdsWREG(CONFIG2, 0xC0);
-  AdsWREG(CH1SET, 0x01);
-  AdsWREG(CH2SET, 0x01);
-  AdsWREG(CH3SET, 0x01);
-  AdsWREG(CH4SET, 0x01);
-  AdsWREG(CH5SET, 0x01);
-  AdsWREG(CH6SET, 0x01);
-  AdsWREG(CH7SET, 0x01);
-  AdsWREG(CH8SET, 0x01);
-  AdsSTART();
-  AdsRDATAC();
+//  AdsWREG(CONFIG3, 0xE0);
+//  AdsWREG(CONFIG1, 0x96);
+//  AdsWREG(CONFIG2, 0xC0);
+//  AdsWREG(CH1SET, 0x01);
+//  AdsWREG(CH2SET, 0x01);
+//  AdsWREG(CH3SET, 0x01);
+//  AdsWREG(CH4SET, 0x01);
+//  AdsWREG(CH5SET, 0x01);
+//  AdsWREG(CH6SET, 0x01);
+//  AdsWREG(CH7SET, 0x01);
+//  AdsWREG(CH8SET, 0x01);
+//  AdsSTART();
+//  AdsRDATAC();
   
+  firstDataPacket = TRUE;
   oDevStateFlag = 1;
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
@@ -296,7 +297,7 @@ void StateAdsStandBy(void)
 //===============================================================
 void StateDevState(void)
 {
-
+  //UINT32 datardy = Port.B.ReadBits(BIT_13);
   LED_EEGACQ_ON;
 }
 
