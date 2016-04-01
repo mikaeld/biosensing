@@ -227,6 +227,9 @@ void StateAdsInit(void)
 {
   oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED
   
+  initialize_ads();
+  ADS_getDeviceID(BOARD_ADS);
+  
 //  INT32 err = 0;
 //  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
 //  
@@ -244,14 +247,15 @@ void StateAdsInit(void)
 //  {
 //    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
 //      "*** ADS1299 initialization routine COMPLETED ***\r\n");
-//    LED_EEGACQ_ON;
-//    Timer.DelayMs(200);
-//    LED_EEGACQ_OFF;
-//    Timer.DelayMs(200);
-//    LED_EEGACQ_ON;
-//    Timer.DelayMs(200);
-//    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
-//    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
+    LED_EEGACQ_ON;
+    Timer.DelayMs(200);
+    LED_EEGACQ_OFF;
+    Timer.DelayMs(200);
+    LED_EEGACQ_ON;
+    Timer.DelayMs(200);
+    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
+    daisyPresent = FALSE;
+    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
 //  }
 }
 
@@ -275,7 +279,15 @@ void StateAdsConfig(void)
 //  AdsSTART();
 //  AdsRDATAC();
   
-  firstDataPacket = TRUE;
+  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
+  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  startStreaming();
   oDevStateFlag = 1;
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
@@ -298,7 +310,13 @@ void StateAdsStandBy(void)
 void StateDevState(void)
 {
   //UINT32 datardy = Port.B.ReadBits(BIT_13);
+  
   LED_EEGACQ_ON;
+  if(isDataAvailable())
+  {
+    updateChannelData();
+    sendChannelData();    
+  }
 }
 
 //===============================================================

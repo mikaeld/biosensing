@@ -32,14 +32,70 @@
 //==============================================================================
 UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data);
 INT32 IsDataReady(void);
-void AdsWAKEUP(void);
-void AdsSTANDBY(void);
-void AdsRESET(void);
-void AdsSTART(void);
-void AdsSTOP(void);
-void AdsRDATAC(void);
-void AdsSDATAC(void);
-void WREG(BYTE _address, BYTE _value);
+//void AdsWAKEUP(void);
+//void AdsSTANDBY(void);
+//void AdsRESET(void);
+//void AdsSTART(void);
+//void AdsSTOP(void);
+//void AdsRDATAC(void);
+//void AdsSDATAC(void);
+//void WREG(BYTE _address, BYTE _value);
+
+// BOARD 
+void initialize(void);  // ADD DAISY USE outputType
+void printAllRegisters(void);   // ADD DAISY USE outputType
+void sendChannelData(void); // send the current data with sample number
+void startStreaming(void);  // ADD DAISY USE outputType
+void stopStreaming(void);   // ADD DAISY USE outputType
+
+// ADS1299  
+void initialize_ads(void);
+void updateChannelSettings(void);
+void writeChannelSettings(void);
+//void writeChannelSettings(BYTE);
+void setChannelsToDefault(void);
+void setChannelsToEMG(void);
+void setChannelsToECG(void);
+void reportDefaultChannelSettings(void);
+void printADSregisters(int);
+void WAKEUP(int);  // get out of low power mode
+void STANDBY(int); // go into low power mode
+void RESET(int);   // set all register values to default
+void START(int);   // start data acquisition
+void STOP(int);    // stop data acquisition
+void RDATAC(int);  // go into read data continuous mode 
+void SDATAC(int);  // get out of read data continuous mode
+void RDATA(int);   // read data one-shot   
+BYTE RREG(BYTE,int);            // read one ADS register
+void RREGS(BYTE,BYTE,int);      // read multiple ADS registers
+void WREG(BYTE,BYTE,int);       // write one ADS register
+void WREGS(BYTE,BYTE,int);      // write multiple ADS registers
+BYTE ADS_getDeviceID(int);         
+void printRegisterName(BYTE);   // used for verbosity
+void printHex(BYTE);            // used for verbosity
+void updateChannelData(void);   // retrieve data from ADS
+void updateBoardData(void);
+void updateDaisyData(void);
+BYTE xfer(BYTE);        // SPI Transfer function 
+void resetADS(int);     // reset all the ADS1299's settings
+void startADS(void);
+void stopADS(void);
+void activateChannel(BYTE);                  // enable the selected channel
+void deactivateChannel(BYTE);                // disable given channel 1-8(16)
+void configureLeadOffDetection(BYTE,BYTE);
+void changeChannelLeadOffDetect(void);
+//void changeChannelLeadOffDetect(BYTE);
+void configureInternalTestSignal(BYTE,BYTE); 
+void changeInputType(BYTE); 
+BOOL isDataAvailable(void);
+void ADS_writeChannelData(void);
+// void ADS_printDeviceID(int);   // 
+BOOL smellDaisy(void);
+void removeDaisy(void);
+void attachDaisy(void);
+void writeAuxData(void);
+
+
 
 
 //==============================================================================
@@ -253,8 +309,8 @@ void WREG(BYTE _address, BYTE _value);
     BOOL daisyPresent;
     BOOL firstDataPacket;
     BOOL isRunning;
-    BOOL useAux = FALSE;
-    BOOL useAccel = FALSE;
+    BOOL useAux;
+    BOOL useAccel;
     
     BYTE sampleCounter;
 
