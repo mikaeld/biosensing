@@ -30,7 +30,41 @@
 //==============================================================================
 
 float temp = 0.0f;
-UINT32 test = 93; // 0x5D
+BYTE test = 93; // 0x5D
+
+//==============================================================================
+//	OPENBCI INTEGRATION
+//==============================================================================
+
+//------------------------------------------------------------------------------
+//  << OPENBCI STUFF HERE >>
+BOOL is_running = FALSE;    // this flag is set in serialEvent on reciept of ascii prompt
+// these are used to change individual channel settings from PC
+char currentChannelToSet;    // keep track of what channel we're loading settings for
+BOOL getChannelSettings = FALSE; // used to receive channel settings command
+int channelSettingsCounter; // used to retrieve channel settings from serial port
+int leadOffSettingsCounter;
+BOOL getLeadOffSettings = FALSE;
+// these are all subject to the radio requirements: 31byte max packet length (maxPacketLength - 1 for packet checkSum)
+#define OUTPUT_NOTHING (0)  // quiet
+#define OUTPUT_8_CHAN (1)  // not using Daisy module
+#define OUTPUT_16_CHAN (2)  // using Daisy module
+int outputType = OUTPUT_8_CHAN;  // default to 8 channels
+
+//------------------------------------------------------------------------------
+//  << PUT FILTER STUFF HERE >>
+BOOL useFilters = FALSE;
+//------------------------------------------------------------------------------
+//  << BASIC BOARD STUFF >>
+int LED = 11;  // blue LED alias
+int PGCpin = 12;  // PGC pin goes high when PIC is in bootloader mode
+//------------------------------------------------------------------------------
+//  << SERIAL TRIGGER STUFF >>
+BOOL serialTrigger = FALSE;
+unsigned long triggerTimer;
+BOOL addAuxToSD = FALSE;
+//------------------------------------------------------------------------------
+
 
 //==============================================================================
 //	STATES OF STATE MACHINE
@@ -226,7 +260,6 @@ void StateMcuInit(void)
 void StateAdsInit(void)
 {
   oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED
-  
   initialize_ads();
   ADS_getDeviceID(BOARD_ADS);
   
@@ -287,6 +320,7 @@ void StateAdsConfig(void)
   WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
   WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
   WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
   startStreaming();
   oDevStateFlag = 1;
   INT32 err = 0;

@@ -91,6 +91,8 @@ void stopStreaming(){
 BYTE xfer(BYTE _data) 
 {
     BYTE inByte;
+    while(Spi.IsSpiBusy(SPI4));
+    SPI4_CS_LOW;
     inByte = SpiTransfer(SPI4, _data);
     return inByte;
 }
@@ -108,9 +110,11 @@ void csLow(int SS)
 //      spi.setMode(DSPI_MODE0); spi.setSpeed(20000000); digitalWrite(SD_SS, LOW); break;
 //    case DAISY_ADS:
 //      spi.setMode(DSPI_MODE1); spi.setSpeed(4000000); digitalWrite(DAISY_ADS, LOW); break;  
-//    case BOTH_ADS:
+    case BOTH_ADS:
+      SPI4_CS_LOW;
 //      spi.setMode(DSPI_MODE1); spi.setSpeed(4000000);
-//      digitalWrite(BOARD_ADS,LOW); digitalWrite(DAISY_ADS,LOW); break;
+//      digitalWrite(BOARD_ADS,LOW); digitalWrite(DAISY_ADS,LOW); 
+      break;
     default: break;
   }
 }
@@ -127,9 +131,11 @@ void csHigh(int SS)
 //      digitalWrite(SD_SS, HIGH); spi.setSpeed(4000000); break;
 //    case DAISY_ADS:
 //      digitalWrite(DAISY_ADS, HIGH); spi.setSpeed(20000000); break;  
-//    case BOTH_ADS:
+    case BOTH_ADS:
+      SPI4_CS_HIGH;
 //      digitalWrite(BOARD_ADS, HIGH); digitalWrite(DAISY_ADS, HIGH);
-//      spi.setSpeed(20000000); break;
+//      spi.setSpeed(20000000); 
+      break;
     default:
       break;
   }
@@ -191,19 +197,20 @@ void initialize_ads(){
       leadOffSettings[i][PCHAN] = OFF;
       leadOffSettings[i][NCHAN] = OFF;
     }
-    verbosity = FALSE;      // when verbosity is TRUE, there will be Serial feedback
+    verbosity = TRUE;      // when verbosity is TRUE, there will be Serial feedback
     firstDataPacket = TRUE;
 }
 
 BOOL smellDaisy(void){ // check if daisy present
   BOOL isDaisy = FALSE;
-  BYTE setting = RREG(ID_REG,DAISY_ADS); // try to read the daisy product ID
-  if(verbosity)
-  {
-    PrintToUart(UART4,"Daisy ID 0x"); 
-    Uart.SendDataByte(UART4,setting);
-  }
-  if(setting == ADS_ID) {isDaisy = TRUE;} // should read as 0x3E
+//  Daisy unimplemented, return false by default
+//  BYTE setting = RREG(ID_REG,DAISY_ADS); // try to read the daisy product ID
+//  if(verbosity)
+//  {
+//    PrintToUart(UART4,"Daisy ID 0x"); 
+//    Uart.SendDataByte(UART4,setting);
+//  }
+//  if(setting == ADS_ID) {isDaisy = TRUE;} // should read as 0x3E
   return isDaisy;
 }
 
@@ -623,6 +630,7 @@ void changeChannelLeadOffDetect(BYTE N) // N arrives as zero indexed
     }
    WREG(LOFF_SENSP,P_setting,targetSS);
    WREG(LOFF_SENSN,N_setting,targetSS);
+   int test = 0;
 } 
 
 void configureLeadOffDetection(BYTE amplitudeCode, BYTE freqCode) 
@@ -943,14 +951,17 @@ void RDATA(int targetSS) {          //  use in Stop Read Continuous mode when DR
   
 }
 
-BYTE RREG(BYTE _address,int targetSS) {    //  reads ONE register at _address
+BYTE RREG(BYTE _address,int targetSS) 
+{    //  reads ONE register at _address
     BYTE opcode1 = _address + 0x20;   //  RREG expects 001rrrrr where rrrrr = _address
     csLow(targetSS);        //  open SPI
     xfer(opcode1);          //  opcode1
     xfer(0x00);           //  opcode2
-    regData[_address] = xfer(0x00);//  update mirror location with returned BYTE
+    UINT32 Value = xfer(0x00);
+            //regData[_address] = xfer(0x00);//  update mirror location with returned BYTE
     csHigh(targetSS);       //  close SPI 
-  if (verbosity){           //  verbosity output
+  if (verbosity)
+  {           //  verbosity output
     printRegisterName(_address);
     Uart.SendDataByte(UART4, _address);
     PrintToUart(UART4,", ");
@@ -964,7 +975,8 @@ BYTE RREG(BYTE _address,int targetSS) {    //  reads ONE register at _address
     
     //PrintToUart(UART4,);
   }
-  return regData[_address];     // return requested register value
+    return Value;
+//  return regData[_address];     // return requested register value
 }
 
 
