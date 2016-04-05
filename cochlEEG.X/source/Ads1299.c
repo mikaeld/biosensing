@@ -183,7 +183,7 @@ void initialize_ads(){
     }
     boardUseSRB1 = daisyUseSRB1 = FALSE;
 
-    writeChannelSettings(); // write settings to the on-board and on-daisy ADS if present
+    writeChannelSettingsAll(); // write settings to the on-board and on-daisy ADS if present
 
     WREG(CONFIG3,0b11101100,BOTH_ADS); 
     Timer.DelayMs(1);  // enable internal reference drive and etc.
@@ -262,13 +262,13 @@ void setChannelsToDefault(void){
   }
   boardUseSRB1 = daisyUseSRB1 = FALSE;
 
-  writeChannelSettings();       // write settings to on-board ADS
+  writeChannelSettingsAll();       // write settings to on-board ADS
 
   for(i=0; i<numChannels; i++){   // turn off the impedance measure signal
     leadOffSettings[i][PCHAN] = OFF;
     leadOffSettings[i][NCHAN] = OFF;
   }
-  changeChannelLeadOffDetect(); // write settings to all ADS
+  changeChannelLeadOffDetectAll(); // write settings to all ADS
 
   
   WREG(MISC1,0x00,BOARD_ADS);  // open SRB1 switch on-board
@@ -288,305 +288,365 @@ void reportDefaultChannelSettings(void){
 
 // write settings for ALL 8 channels for a given ADS board
 // channel settings: powerDown, gain, inputType, SRB2, SRB1 
-void writeChannelSettings(){   
+void writeChannelSettingsAll(){   
   BOOL use_SRB1 = FALSE;
   BYTE setting, startChan, endChan, targetSS;  
   int b;
   BYTE i;
-//  for(b=0; b<2; b++){
-//    if(b == 0){ targetSS = BOARD_ADS; startChan = 0; endChan = 8; }
-//    if(b == 1){ 
-//      if(!daisyPresent){ return; }
-//      targetSS = DAISY_ADS; startChan = 8; endChan = 16;
-//    }
-//  
-//    SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
-//
-//    for(i=startChan; i<endChan; i++){ // write 8 channel settings
-//      setting = 0x00;
-//      if(channelSettings[i][POWER_DOWN] == YES){setting |= 0x80;}
-//      setting |= channelSettings[i][GAIN_SET]; // gain
-//      setting |= channelSettings[i][INPUT_TYPE_SET]; // input code
-//      if(channelSettings[i][SRB2_SET] == YES){
-//        setting |= 0x08;    // close this SRB2 switch
-//        useSRB2[i] = TRUE;  // remember SRB2 state for this channel 
-//      }else{
-//        useSRB2[i] = FALSE; // rememver SRB2 state for this channel
-//      }
-//      WREG(CH1SET+(i-startChan),setting,targetSS);  // write this channel's register settings
-//      
-//      // add or remove this channel from inclusion in BIAS generation
-//      setting = RREG(BIAS_SENSP,targetSS);                   //get the current P bias settings
-//      if(channelSettings[i][BIAS_SET] == YES){
-//        BITSET(setting,i-startChan); 
-//        useInBias[i] = TRUE;    //add this channel to the bias generation
-//      }else{
-//        BITCLEAR(setting,i-startChan); 
-//        useInBias[i] = FALSE; //remove this channel from bias generation
-//      }
-//      WREG(BIAS_SENSP,setting,targetSS); Timer.DelayMs(1);           //send the modified BYTE back to the ADS
-//
-//      setting = RREG(BIAS_SENSN,targetSS);                   //get the current N bias settings
-//      if(channelSettings[i][BIAS_SET] == YES){
-//        BITSET((setting),(i-startChan));    //set this channel's bit to add it to the bias generation
-//      }else{
-//        BITCLEAR((setting),(i-startChan));  // clear this channel's bit to remove from bias generation
-//      }
-//      WREG(BIAS_SENSN,setting,targetSS); Timer.DelayMs(1);           //send the modified BYTE back to the ADS
-//       
-//      if(channelSettings[i][SRB1_SET] == YES){
-//        use_SRB1 = TRUE;  // if any of the channel setting closes SRB1, it is closed for all
-//      }
-//    } // end of CHnSET and BIAS settings
-//  } // end of board select loop
-//    if(use_SRB1){
-//      for(i=startChan; i<endChan; i++){
-//        channelSettings[i][SRB1_SET] = YES;
-//      }
-//      WREG(MISC1,0x20,targetSS);     // close SRB1 swtich
-//      if(targetSS == BOARD_ADS){ boardUseSRB1 = TRUE; }
-//      if(targetSS == DAISY_ADS){ daisyUseSRB1 = TRUE; }
-//    }else{
-//      for(i=startChan; i<endChan; i++){
-//        channelSettings[i][SRB1_SET] = NO;
-//      }
-//      WREG(MISC1,0x00,targetSS);    // open SRB1 switch
-//      if(targetSS == BOARD_ADS){ boardUseSRB1 = FALSE; }
-//      if(targetSS == DAISY_ADS){ daisyUseSRB1 = FALSE; }
-//    }
+  for(b=0; b<2; b++){
+    if(b == 0){ targetSS = BOARD_ADS; startChan = 0; endChan = 8; }
+    if(b == 1){ 
+      if(!daisyPresent){ return; }
+      targetSS = DAISY_ADS; startChan = 8; endChan = 16;
+    }
+  
+    SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
+
+    for(i=startChan; i<endChan; i++){ // write 8 channel settings
+      setting = 0x00;
+      if(channelSettings[i][POWER_DOWN] == YES){setting |= 0x80;}
+      setting |= channelSettings[i][GAIN_SET]; // gain
+      setting |= channelSettings[i][INPUT_TYPE_SET]; // input code
+      if(channelSettings[i][SRB2_SET] == YES){
+        setting |= 0x08;    // close this SRB2 switch
+        useSRB2[i] = TRUE;  // remember SRB2 state for this channel 
+      }else{
+        useSRB2[i] = FALSE; // rememver SRB2 state for this channel
+      }
+      WREG(CH1SET+(i-startChan),setting,targetSS);  // write this channel's register settings
+      
+      // add or remove this channel from inclusion in BIAS generation
+      setting = RREG(BIAS_SENSP,targetSS);                   //get the current P bias settings
+      if(channelSettings[i][BIAS_SET] == YES){
+        BITSET(setting,i-startChan); 
+        useInBias[i] = TRUE;    //add this channel to the bias generation
+      }else{
+        BITCLEAR(setting,i-startChan); 
+        useInBias[i] = FALSE; //remove this channel from bias generation
+      }
+      WREG(BIAS_SENSP,setting,targetSS); Timer.DelayMs(1);           //send the modified BYTE back to the ADS
+
+      setting = RREG(BIAS_SENSN,targetSS);                   //get the current N bias settings
+      if(channelSettings[i][BIAS_SET] == YES){
+        BITSET((setting),(i-startChan));    //set this channel's bit to add it to the bias generation
+      }else{
+        BITCLEAR((setting),(i-startChan));  // clear this channel's bit to remove from bias generation
+      }
+      WREG(BIAS_SENSN,setting,targetSS); Timer.DelayMs(1);           //send the modified BYTE back to the ADS
+       
+      if(channelSettings[i][SRB1_SET] == YES){
+        use_SRB1 = TRUE;  // if any of the channel setting closes SRB1, it is closed for all
+      }
+    } // end of CHnSET and BIAS settings
+  } // end of board select loop
+    if(use_SRB1){
+      for(i=startChan; i<endChan; i++){
+        channelSettings[i][SRB1_SET] = YES;
+      }
+      WREG(MISC1,0x20,targetSS);     // close SRB1 swtich
+      if(targetSS == BOARD_ADS){ boardUseSRB1 = TRUE; }
+      if(targetSS == DAISY_ADS){ daisyUseSRB1 = TRUE; }
+    }else{
+      for(i=startChan; i<endChan; i++){
+        channelSettings[i][SRB1_SET] = NO;
+      }
+      WREG(MISC1,0x00,targetSS);    // open SRB1 switch
+      if(targetSS == BOARD_ADS){ boardUseSRB1 = FALSE; }
+      if(targetSS == DAISY_ADS){ daisyUseSRB1 = FALSE; }
+    }
 }
 
-//// write settings for a SPECIFIC channel on a given ADS board
-//void writeChannelSettings(BYTE N){  
-//  
-//  BYTE setting, startChan, endChan, targetSS;  
-//  if(N < 9){  // channels 1-8 on board
-//    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
-//  }else{      // channels 9-16 on daisy module
-//    if(!daisyPresent) { return; }
-//    targetSS = DAISY_ADS; startChan = 8; endChan = 16;
-//  }
-//// function accepts channel 1-16, must be 0 indexed to work with array
-//  N = constrain(N-1,startChan,endChan-1);  //subtracts 1 so that we're counting from 0, not 1
-//// first, disable any data collection
-//  SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
-//  
-//  setting = 0x00;
-//  if(channelSettings[N][POWER_DOWN] == YES) setting |= 0x80;
-//  setting |= channelSettings[N][GAIN_SET]; // gain
-//  setting |= channelSettings[N][INPUT_TYPE_SET]; // input code
-//  if(channelSettings[N][SRB2_SET] == YES){
-//    setting |= 0x08; // close this SRB2 switch
-//    useSRB2[N] = TRUE;  // keep track of SRB2 usage
-//  }else{
-//    useSRB2[N] = FALSE;
-//  }
-//  WREG(CH1SET+(N-startChan), setting, targetSS);  // write this channel's register settings
-//
-//  // add or remove from inclusion in BIAS generation
-//  setting = RREG(BIAS_SENSP,targetSS);       //get the current P bias settings
-//  if(channelSettings[N][BIAS_SET] == YES){
-//    useInBias[N] = TRUE;
-//    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
-//  }else{
-//    useInBias[N] = FALSE;
-//    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
-//  }
-//  WREG(BIAS_SENSP,setting,targetSS); Timer.DelayMs(1); //send the modified BYTE back to the ADS
-//  setting = RREG(BIAS_SENSN,targetSS);       //get the current N bias settings
-//  if(channelSettings[N][BIAS_SET] == YES){
-//    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
-//  }else{
-//    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
-//  }
-//  WREG(BIAS_SENSN,setting,targetSS); Timer.DelayMs(1); //send the modified BYTE back to the ADS
-//    
-//// if SRB1 is closed or open for one channel, it will be the same for all channels    
-//  if(channelSettings[N][SRB1_SET] == YES){
-//    for(int i=startChan; i<endChan; i++){
-//      channelSettings[i][SRB1_SET] = YES;
-//    }
-//    if(targetSS == BOARD_ADS) boardUseSRB1 = TRUE;
-//    if(targetSS == DAISY_ADS) daisyUseSRB1 = TRUE;
-//    setting = 0x20;     // close SRB1 swtich
-//  }
-//  if(channelSettings[N][SRB1_SET] == NO){
-//    for(int i=startChan; i<endChan; i++){
-//      channelSettings[i][SRB1_SET] = NO;
-//    }
-//    if(targetSS == BOARD_ADS) boardUseSRB1 = FALSE;
-//    if(targetSS == DAISY_ADS) daisyUseSRB1 = FALSE;
-//    setting = 0x00;     // open SRB1 switch
-//  }
-//  WREG(MISC1,setting,targetSS);
-//}
+// write settings for a SPECIFIC channel on a given ADS board
+void writeChannelSettings(BYTE N){  
+  int i;
+  BYTE setting, startChan, endChan, targetSS;  
+  if(N < 9)
+  {  // channels 1-8 on board
+    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
+  }
+  else
+  {      // channels 9-16 on daisy module
+    if(!daisyPresent) { return; }
+    targetSS = DAISY_ADS; startChan = 8; endChan = 16;
+  }
+  
+// function accepts channel 1-16, must be 0 indexed to work with array
+  N = constrain(N-1,startChan,endChan-1);  //subtracts 1 so that we're counting from 0, not 1
+// first, disable any data collection
+  SDATAC(targetSS); 
+  Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
+  
+  setting = 0x00;
+  if(channelSettings[N][POWER_DOWN] == YES) setting |= 0x80;
+  setting |= channelSettings[N][GAIN_SET]; // gain
+  setting |= channelSettings[N][INPUT_TYPE_SET]; // input code
+  if(channelSettings[N][SRB2_SET] == YES)
+  {
+    setting |= 0x08; // close this SRB2 switch
+    useSRB2[N] = TRUE;  // keep track of SRB2 usage
+  }
+  else
+  {
+    useSRB2[N] = FALSE;
+  }
+  WREG(CH1SET+(N-startChan), setting, targetSS);  // write this channel's register settings
+
+  // add or remove from inclusion in BIAS generation
+  setting = RREG(BIAS_SENSP,targetSS);       //get the current P bias settings
+  if(channelSettings[N][BIAS_SET] == YES)
+  {
+    useInBias[N] = TRUE;
+    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
+  }
+  else
+  {
+    useInBias[N] = FALSE;
+    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
+  }
+  WREG(BIAS_SENSP,setting,targetSS); 
+  Timer.DelayMs(1); //send the modified BYTE back to the ADS
+  
+  setting = RREG(BIAS_SENSN,targetSS);       //get the current N bias settings
+  if(channelSettings[N][BIAS_SET] == YES)
+  {
+    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
+  }
+  else
+  {
+    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
+  }
+  WREG(BIAS_SENSN,setting,targetSS); 
+  Timer.DelayMs(1); //send the modified BYTE back to the ADS
+    
+// if SRB1 is closed or open for one channel, it will be the same for all channels    
+  if(channelSettings[N][SRB1_SET] == YES)
+  {
+    for(i=startChan; i<endChan; i++)
+    {
+      channelSettings[i][SRB1_SET] = YES;
+    }
+    if(targetSS == BOARD_ADS) boardUseSRB1 = TRUE;
+    if(targetSS == DAISY_ADS) daisyUseSRB1 = TRUE;
+    setting = 0x20;     // close SRB1 swtich
+  }
+  if(channelSettings[N][SRB1_SET] == NO)
+  {
+    for(i=startChan; i<endChan; i++)
+    {
+      channelSettings[i][SRB1_SET] = NO;
+    }
+    if(targetSS == BOARD_ADS) boardUseSRB1 = FALSE;
+    if(targetSS == DAISY_ADS) daisyUseSRB1 = FALSE;
+    setting = 0x00;     // open SRB1 switch
+  }
+  WREG(MISC1,setting,targetSS);
+}
 
 //  deactivate the given channel.
 void deactivateChannel(BYTE N) 
 {
   BYTE setting, startChan, endChan, targetSS;  
-//  if(N < 9){
-//    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
-//  }else{
-//    if(!daisyPresent) { return; }
-//    targetSS = DAISY_ADS; startChan = 8; endChan = 16;
-//  }
-//  SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
-//  N = constrain(N-1,startChan,endChan-1);  //subtracts 1 so that we're counting from 0, not 1
-//
-//  setting = RREG(CH1SET+(N-startChan),targetSS); Timer.DelayMs(1); // get the current channel settings
-//  BITSET(setting,7);     // set bit7 to shut down channel
-//  BITCLEAR(setting,3);   // clear bit3 to disclude from SRB2 if used
-//  WREG(CH1SET+(N-startChan),setting,targetSS); Timer.DelayMs(1);     // write the new value to disable the channel
-//  
-//  //remove the channel from the bias generation...
-//  setting = RREG(BIAS_SENSP,targetSS); Timer.DelayMs(1); //get the current bias settings
-//  BITCLEAR(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
-//  WREG(BIAS_SENSP,setting,targetSS); Timer.DelayMs(1);   //send the modified BYTE back to the ADS
-//
-//  setting = RREG(BIAS_SENSN,targetSS); Timer.DelayMs(1); //get the current bias settings
-//  BITCLEAR(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
-//  WREG(BIAS_SENSN,setting,targetSS); Timer.DelayMs(1);   //send the modified BYTE back to the ADS
-//  
-//  leadOffSettings[N][0] = leadOffSettings[N][1] = NO;
-//  changeChannelLeadOffDetect(N+1);
+  if(N < 9)
+  {
+    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
+  }
+  else
+  {
+    if(!daisyPresent) 
+    { 
+      return; 
+    }
+    targetSS = DAISY_ADS; startChan = 8; 
+    endChan = 16;
+  }
+  SDATAC(targetSS); 
+  Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
+  N = constrain(N-1,startChan,endChan-1);  //subtracts 1 so that we're counting from 0, not 1
+
+  setting = RREG(CH1SET+(N-startChan),targetSS); 
+  Timer.DelayMs(1); // get the current channel settings
+  BITSET(setting,7);     // set bit7 to shut down channel
+  BITCLEAR(setting,3);   // clear bit3 to disclude from SRB2 if used
+  WREG(CH1SET+(N-startChan),setting,targetSS); 
+  Timer.DelayMs(1);     // write the new value to disable the channel
+  
+  //remove the channel from the bias generation...
+  setting = RREG(BIAS_SENSP,targetSS); 
+  Timer.DelayMs(1); //get the current bias settings
+  BITCLEAR(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
+  WREG(BIAS_SENSP,setting,targetSS); 
+  Timer.DelayMs(1);   //send the modified BYTE back to the ADS
+
+  setting = RREG(BIAS_SENSN,targetSS); 
+  Timer.DelayMs(1); //get the current bias settings
+  BITCLEAR(setting,N-startChan);                  //clear this channel's bit to remove from bias generation
+  WREG(BIAS_SENSN,setting,targetSS); 
+  Timer.DelayMs(1);   //send the modified BYTE back to the ADS
+  
+  leadOffSettings[N][0] = leadOffSettings[N][1] = NO;
+  changeChannelLeadOffDetect(N+1);
 } 
 
 void activateChannel(BYTE N) 
 {
 	BYTE setting, startChan, endChan, targetSS;  
-//  if(N < 9){
-//    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
-//  }else{
-//    if(!daisyPresent) { return; }
-//    targetSS = DAISY_ADS; startChan = 8; endChan = 16;
-//  }
-//
-//  N = constrain(N-1,startChan,endChan-1);  // 0-7 or 8-15
-//
-//  SDATAC(targetSS);  // exit Read Data Continuous mode to communicate with ADS
-//  setting = 0x00;
-////  channelSettings[N][POWER_DOWN] = NO; // keep track of channel on/off in this array  REMOVE?
-//  setting |= channelSettings[N][GAIN_SET]; // gain
-//  setting |= channelSettings[N][INPUT_TYPE_SET]; // input code
-//  if(useSRB2[N] == TRUE){channelSettings[N][SRB2_SET] = YES;}else{channelSettings[N][SRB2_SET] = NO;}
-//  if(channelSettings[N][SRB2_SET] == YES) {BITSET(setting,3);} // close this SRB2 switch
-//  WREG(CH1SET+(N-startChan),setting,targetSS);
-//  // add or remove from inclusion in BIAS generation
-//  if(useInBias[N]){channelSettings[N][BIAS_SET] = YES;}else{channelSettings[N][BIAS_SET] = NO;}
-//  setting = RREG(BIAS_SENSP,targetSS);       //get the current P bias settings
-//  if(channelSettings[N][BIAS_SET] == YES){
-//    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
-//    useInBias[N] = TRUE;
-//  }else{
-//    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
-//    useInBias[N] = FALSE;
-//  }
-//  WREG(BIAS_SENSP,setting,targetSS); Timer.DelayMs(1); //send the modified BYTE back to the ADS
-//  setting = RREG(BIAS_SENSN,targetSS);       //get the current N bias settings
-//  if(channelSettings[N][BIAS_SET] == YES){
-//    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
-//  }else{
-//    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
-//  }
-//  WREG(BIAS_SENSN,setting,targetSS); Timer.DelayMs(1); //send the modified BYTE back to the ADS
-//    
-//  setting = 0x00;
-//  if(targetSS == BOARD_ADS && boardUseSRB1 == TRUE) setting = 0x20;
-//  if(targetSS == DAISY_ADS && daisyUseSRB1 == TRUE) setting = 0x20;
-//  WREG(MISC1,setting,targetSS);     // close all SRB1 swtiches
+  if(N < 9){
+    targetSS = BOARD_ADS; startChan = 0; endChan = 8; 
+  }else{
+    if(!daisyPresent) { return; }
+    targetSS = DAISY_ADS; startChan = 8; endChan = 16;
+  }
+
+  N = constrain(N-1,startChan,endChan-1);  // 0-7 or 8-15
+
+  SDATAC(targetSS);  // exit Read Data Continuous mode to communicate with ADS
+  setting = 0x00;
+//  channelSettings[N][POWER_DOWN] = NO; // keep track of channel on/off in this array  REMOVE?
+  setting |= channelSettings[N][GAIN_SET]; // gain
+  setting |= channelSettings[N][INPUT_TYPE_SET]; // input code
+  if(useSRB2[N] == TRUE)
+  {
+    channelSettings[N][SRB2_SET] = YES;
+  }
+  else
+  {
+    channelSettings[N][SRB2_SET] = NO;
+  }
+  if(channelSettings[N][SRB2_SET] == YES) 
+  {
+    BITSET(setting,3); // close this SRB2 switch
+  } 
+  WREG(CH1SET+(N-startChan),setting,targetSS);
+  
+  // add or remove from inclusion in BIAS generation
+  if(useInBias[N])
+  {
+    channelSettings[N][BIAS_SET] = YES;
+  }
+  else
+  {
+    channelSettings[N][BIAS_SET] = NO;
+  }
+  setting = RREG(BIAS_SENSP,targetSS);       //get the current P bias settings
+  if(channelSettings[N][BIAS_SET] == YES)
+  {
+    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
+    useInBias[N] = TRUE;
+  }
+  else
+  {
+    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
+    useInBias[N] = FALSE;
+  }
+  WREG(BIAS_SENSP,setting,targetSS); 
+  Timer.DelayMs(1); //send the modified BYTE back to the ADS
+  setting = RREG(BIAS_SENSN,targetSS);       //get the current N bias settings
+  if(channelSettings[N][BIAS_SET] == YES)
+  {
+    BITSET(setting,N-startChan);    //set this channel's bit to add it to the bias generation
+  }
+  else
+  {
+    BITCLEAR(setting,N-startChan);  // clear this channel's bit to remove from bias generation
+  }
+  WREG(BIAS_SENSN,setting,targetSS); 
+  Timer.DelayMs(1); //send the modified BYTE back to the ADS
+    
+  setting = 0x00;
+  if(targetSS == BOARD_ADS && boardUseSRB1 == TRUE) setting = 0x20;
+  if(targetSS == DAISY_ADS && daisyUseSRB1 == TRUE) setting = 0x20;
+  WREG(MISC1,setting,targetSS);     // close all SRB1 swtiches
 }
 
 // change the lead off detect settings for all channels
-void changeChannelLeadOffDetect() 
+void changeChannelLeadOffDetectAll() 
 {
   BYTE setting, startChan, endChan, targetSS;  
 
-  
-//  int b;
-//  for(b=0; b<2; b++){
-//    if(b == 0){ targetSS = BOARD_ADS; startChan = 0; endChan = 8; }
-//    if(b == 1){ 
-//      if(!daisyPresent){ return; }
-//      targetSS = DAISY_ADS; startChan = 8; endChan = 16;
-//    }
-// 
-//    SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
-//    BYTE P_setting = RREG(LOFF_SENSP,targetSS);
-//    BYTE N_setting = RREG(LOFF_SENSN,targetSS);
-//    
-//    int i;
-//    for(i=startChan; i<endChan; i++){
-//      if(leadOffSettings[i][PCHAN] == ON){
-//        BITSET(P_setting,i-startChan);
-//      }else{
-//        BITCLEAR(P_setting,i-startChan);
-//      }
-//      if(leadOffSettings[i][NCHAN] == ON){
-//        BITSET(N_setting,i-startChan);
-//      }else{
-//        BITCLEAR(N_setting,i-startChan);
-//      }
-//     WREG(LOFF_SENSP,P_setting,targetSS);
-//     WREG(LOFF_SENSN,N_setting,targetSS);
-//    }
-//  }
+  int b;
+  for(b=0; b<2; b++){
+    if(b == 0){ targetSS = BOARD_ADS; startChan = 0; endChan = 8; }
+    if(b == 1){ 
+      if(!daisyPresent){ return; }
+      targetSS = DAISY_ADS; startChan = 8; endChan = 16;
+    }
+ 
+    SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
+    BYTE P_setting = RREG(LOFF_SENSP,targetSS);
+    BYTE N_setting = RREG(LOFF_SENSN,targetSS);
+    
+    int i;
+    for(i=startChan; i<endChan; i++){
+      if(leadOffSettings[i][PCHAN] == ON){
+        BITSET(P_setting,i-startChan);
+      }else{
+        BITCLEAR(P_setting,i-startChan);
+      }
+      if(leadOffSettings[i][NCHAN] == ON){
+        BITSET(N_setting,i-startChan);
+      }else{
+        BITCLEAR(N_setting,i-startChan);
+      }
+     WREG(LOFF_SENSP,P_setting,targetSS);
+     WREG(LOFF_SENSN,N_setting,targetSS);
+    }
+  }
 }
 
-//// change the lead off detect settings for specified channel
-//void changeChannelLeadOffDetect(BYTE N) // N arrives as zero indexed
-//{
-//  BYTE setting, targetSS, startChan; //, endChan;
-//
-//  if(N < 0x08){
-//    targetSS = BOARD_ADS; startChan = 0x00; //endChan = 0x08; 
-//  }else{
-//    if(!daisyPresent) { PrintToUart(UART4,"no daisy attached!"); return; }
-//    targetSS = DAISY_ADS; startChan = 0x08; //endChan = 0x10;
-//  }
-//
-//
-//  // N = constrain(N-1,startChan,endChan-1);
-//  // SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
-//  BYTE P_setting = RREG(LOFF_SENSP,targetSS);
-//  BYTE N_setting = RREG(LOFF_SENSN,targetSS);
-//  
-//    if(leadOffSettings[N][PCHAN] == ON){
-//      BITSET(P_setting,N-startChan);
-//    }else{
-//      BITCLEAR(P_setting,N-startChan);
-//    }
-//    if(leadOffSettings[N][NCHAN] == ON){
-//      BITSET(N_setting,N-startChan);
-//    }else{
-//      BITCLEAR(N_setting,N-startChan);
-//    }
-//   WREG(LOFF_SENSP,P_setting,targetSS);
-//   WREG(LOFF_SENSN,N_setting,targetSS);
-//} 
+// change the lead off detect settings for specified channel
+void changeChannelLeadOffDetect(BYTE N) // N arrives as zero indexed
+{
+  BYTE setting, targetSS, startChan; //, endChan;
 
-//void configureLeadOffDetection(BYTE amplitudeCode, BYTE freqCode) 
-//{
-//	amplitudeCode &= 0b00001100;  //only these two bits should be used
-//	freqCode &= 0b00000011;  //only these two bits should be used
-//	
-//	BYTE setting, targetSS;
-//	int i;
-//  for(i=0; i<2; i++){
-//    if(i == 0){ targetSS = BOARD_ADS; }
-//    if(i == 1){ 
-//      if(!daisyPresent){ return; }
-//      targetSS = DAISY_ADS; 
-//    }
-//  	setting = RREG(LOFF,targetSS); //get the current bias settings
-//  	//reconfigure the BYTE to get what we want
-//  	setting &= 0b11110000;  //clear out the last four bits
-//  	setting |= amplitudeCode;  //set the amplitude
-//  	setting |= freqCode;    //set the frequency
-//  	//send the config BYTE back to the hardware
-//  	WREG(LOFF,setting,targetSS); Timer.DelayMs(1);  //send the modified BYTE back to the ADS
-//	}
-//}
+  if(N < 0x08){
+    targetSS = BOARD_ADS; startChan = 0x00; //endChan = 0x08; 
+  }else{
+    if(!daisyPresent) { PrintToUart(UART4,"no daisy attached!"); return; }
+    targetSS = DAISY_ADS; startChan = 0x08; //endChan = 0x10;
+  }
+
+
+  // N = constrain(N-1,startChan,endChan-1);
+  // SDATAC(targetSS); Timer.DelayMs(1);      // exit Read Data Continuous mode to communicate with ADS
+  BYTE P_setting = RREG(LOFF_SENSP,targetSS);
+  BYTE N_setting = RREG(LOFF_SENSN,targetSS);
+  
+    if(leadOffSettings[N][PCHAN] == ON){
+      BITSET(P_setting,N-startChan);
+    }else{
+      BITCLEAR(P_setting,N-startChan);
+    }
+    if(leadOffSettings[N][NCHAN] == ON){
+      BITSET(N_setting,N-startChan);
+    }else{
+      BITCLEAR(N_setting,N-startChan);
+    }
+   WREG(LOFF_SENSP,P_setting,targetSS);
+   WREG(LOFF_SENSN,N_setting,targetSS);
+} 
+
+void configureLeadOffDetection(BYTE amplitudeCode, BYTE freqCode) 
+{
+	amplitudeCode &= 0b00001100;  //only these two bits should be used
+	freqCode &= 0b00000011;  //only these two bits should be used
+	
+	BYTE setting, targetSS;
+	int i;
+  for(i=0; i<2; i++){
+    if(i == 0){ targetSS = BOARD_ADS; }
+    if(i == 1){ 
+      if(!daisyPresent){ return; }
+      targetSS = DAISY_ADS; 
+    }
+  	setting = RREG(LOFF,targetSS); //get the current bias settings
+  	//reconfigure the BYTE to get what we want
+  	setting &= 0b11110000;  //clear out the last four bits
+  	setting |= amplitudeCode;  //set the amplitude
+  	setting |= freqCode;    //set the frequency
+  	//send the config BYTE back to the hardware
+  	WREG(LOFF,setting,targetSS); Timer.DelayMs(1);  //send the modified BYTE back to the ADS
+	}
+}
 
 //Configure the test signals that can be inernally generated by the ADS1299
 void configureInternalTestSignal(BYTE amplitudeCode, BYTE freqCode) 
@@ -614,7 +674,7 @@ void changeInputType(BYTE inputCode){
     channelSettings[i][INPUT_TYPE_SET] = inputCode;
   }
 
-  writeChannelSettings();
+  writeChannelSettingsAll();
 
 }
  

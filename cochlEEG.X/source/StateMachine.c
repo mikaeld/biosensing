@@ -310,13 +310,10 @@ void StateAdsStandBy(void)
 void StateDevState(void)
 {
   //UINT32 datardy = Port.B.ReadBits(BIT_13);
-  
   LED_EEGACQ_ON;
-  if(isDataAvailable())
-  {
-    updateChannelData();
-    sendChannelData();    
-  }
+  while(!(isDataAvailable())){}   // wait for DRDY pin...
+  updateChannelData(); // get the fresh ADS results
+  sendChannelData();  // serial fire hose
 }
 
 //===============================================================

@@ -42,13 +42,10 @@ BYTE constrain(BYTE x, BYTE a, BYTE b);
 
 #include <limits.h>     /* for CHAR_BIT */
 
-#define BITMASK(b) (1 << ((b) % CHAR_BIT))
-#define BITSLOT(b) ((b) / CHAR_BIT)
-#define BITSET(a, b) ((a)[BITSLOT(b)] |= BITMASK(b))
-#define BITCLEAR(a, b) ((a)[BITSLOT(b)] &= ~BITMASK(b))
-#define BITTEST(a, b) ((a)[BITSLOT(b)] & BITMASK(b))
-#define BITNSLOTS(nb) ((nb + CHAR_BIT - 1) / CHAR_BIT)
 #define BITREAD(value, bit) (((value) >> (bit)) & 0x01)
+#define BITSET(value, bit) ((value) |= (1UL << (bit)))
+#define BITCLEAR(value, bit) ((value) &= ~(1UL << (bit)))
+#define BITWRITE(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 
 //==============================================================================

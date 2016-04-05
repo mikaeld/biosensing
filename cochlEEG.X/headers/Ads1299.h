@@ -51,8 +51,8 @@ void stopStreaming(void);   // ADD DAISY USE outputType
 // ADS1299  
 void initialize_ads(void);
 void updateChannelSettings(void);
-void writeChannelSettings(void);
-//void writeChannelSettings(BYTE);
+void writeChannelSettingsAll(void);
+void writeChannelSettings(BYTE);
 void setChannelsToDefault(void);
 void setChannelsToEMG(void);
 void setChannelsToECG(void);
@@ -83,8 +83,8 @@ void stopADS(void);
 void activateChannel(BYTE);                  // enable the selected channel
 void deactivateChannel(BYTE);                // disable given channel 1-8(16)
 void configureLeadOffDetection(BYTE,BYTE);
-void changeChannelLeadOffDetect(void);
-//void changeChannelLeadOffDetect(BYTE);
+void changeChannelLeadOffDetectAll(void);
+void changeChannelLeadOffDetect(BYTE);
 void configureInternalTestSignal(BYTE,BYTE); 
 void changeInputType(BYTE); 
 BOOL isDataAvailable(void);
