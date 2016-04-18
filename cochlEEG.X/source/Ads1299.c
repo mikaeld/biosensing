@@ -41,6 +41,7 @@
 //==============================================================================
 
 //print out the state of all the control registers
+
 void printADSregisters(int targetSS)   
 {
     BOOL prevverbosityState = verbosity;
@@ -53,10 +54,10 @@ void printADSregisters(int targetSS)
 
 void printAllRegisters(){
   if(!isRunning){
-    PrintToUart(UART4,"\nBoard ADS Registers");
+    PrintlnToUart(UART4,"\nBoard ADS Registers");
     printADSregisters(BOARD_ADS);  
     if(daisyPresent){ 
-      PrintToUart(UART4,"\nDaisy ADS Registers");
+      PrintlnToUart(UART4,"\nDaisy ADS Registers");
       printADSregisters(DAISY_ADS); 
     }
   }
@@ -203,7 +204,7 @@ void initialize_ads(){
 
 BOOL smellDaisy(void){ // check if daisy present
   BOOL isDaisy = FALSE;
-//  Daisy unimplemented, return false by default
+// //  Daisy unimplemented, return false by default
 //  BYTE setting = RREG(ID_REG,DAISY_ADS); // try to read the daisy product ID
 //  if(verbosity)
 //  {
@@ -220,9 +221,9 @@ void removeDaisy(void){
     RESET(DAISY_ADS);
     STANDBY(DAISY_ADS);
     daisyPresent = FALSE;
-    if(!isRunning) PrintToUart(UART4,"daisy removed");
+    if(!isRunning) PrintlnToUart(UART4,"daisy removed");
   }else{
-    if(!isRunning) PrintToUart(UART4,"no daisy to remove!");
+    if(!isRunning) PrintlnToUart(UART4,"no daisy to remove!");
   }
 }
 
@@ -235,10 +236,10 @@ void attachDaisy(void){
   if(!daisyPresent){
     WREG(CONFIG1,0x96,BOARD_ADS); // turn off clk output if no daisy present
     numChannels = 8;    // expect up to 8 ADS channels
-    if(!isRunning) PrintToUart(UART4,"no daisy to attach!");
+    if(!isRunning) PrintlnToUart(UART4,"no daisy to attach!");
   }else{
     numChannels = 16;   // expect up to 16 ADS channels
-    if(!isRunning) PrintToUart(UART4,"daisy attached");
+    if(!isRunning) PrintlnToUart(UART4,"daisy attached");
   } 
 }
 
@@ -608,7 +609,7 @@ void changeChannelLeadOffDetect(BYTE N) // N arrives as zero indexed
   if(N < 0x08){
     targetSS = BOARD_ADS; startChan = 0x00; //endChan = 0x08; 
   }else{
-    if(!daisyPresent) { PrintToUart(UART4,"no daisy attached!"); return; }
+    if(!daisyPresent) { PrintlnToUart(UART4,"no daisy attached!"); return; }
     targetSS = DAISY_ADS; startChan = 0x08; //endChan = 0x10;
   }
 
@@ -853,7 +854,7 @@ BYTE ADS_getDeviceID(int targetSS) {      // simple hello world com check
   BYTE data = RREG(ID_REG,targetSS);
   if(verbosity){            // verbosity otuput
     PrintToUart(UART4,"On Board ADS ID ");
-    Uart.SendDataByte(UART4, data);
+    Uart.SendDataByte(UART4, data); PrintlnToUart(UART4, " ");
   }
   return data;
 }
@@ -973,7 +974,7 @@ BYTE RREG(BYTE _address,int targetSS)
       if(j!=7) PrintToUart(UART4,", ");
     }
     
-    //PrintToUart(UART4,);
+    PrintlnToUart(UART4, " ");
   }
     return Value;
 //  return regData[_address];     // return requested register value
@@ -1005,7 +1006,7 @@ void RREGS(BYTE _address, BYTE _numRegistersMinusOne, int targetSS) {
         //PrintToUart(UART4,BITREAD(regData[_address + i], 7-j));
         if(j!=7) PrintToUart(UART4,", ");
       }
-      //PrintToUart(UART4,);
+      PrintlnToUart(UART4, " ");
       Timer.DelayMs(30);
     }
     }
@@ -1022,7 +1023,7 @@ void WREG(BYTE _address, BYTE _value, int target_SS) { //  Write ONE register at
     if(verbosity){            //  verbosity output
     PrintToUart(UART4,"Register ");
     Uart.SendDataByte(UART4, _address);
-    PrintToUart(UART4," modified.");
+    PrintlnToUart(UART4," modified.");
   }
 }
 
@@ -1040,7 +1041,7 @@ void WREGS(BYTE _address, BYTE _numRegistersMinusOne, int targetSS) {
     PrintToUart(UART4,"Registers ");
     Uart.SendDataByte(UART4, _address); PrintToUart(UART4," to ");
     Uart.SendDataByte(UART4, _address + _numRegistersMinusOne);
-    PrintToUart(UART4," modified");
+    PrintlnToUart(UART4," modified");
   }
 }
 

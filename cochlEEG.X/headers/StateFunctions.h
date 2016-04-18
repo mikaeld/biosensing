@@ -34,7 +34,28 @@
 UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data);
 INT32 PrintToUart(UartModule_t uartModuleId, char *string);
 BYTE constrain(BYTE x, BYTE a, BYTE b);
+INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
+INT32 PrintToUartHex(UartModule_t uartModuleId, UINT32 val);
+INT32 PrintToUartDec(UartModule_t uartModuleId, UINT32 val);
 
+INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
+INT32 PrintToUartChar(UartModule_t uartModuleId, char c);
+BYTE constrain(BYTE x, BYTE a, BYTE b);
+void getCommand(char token);
+void sendEOT();
+void loadChannelSettings(char c);
+void writeChannelSettings_maintainRunningState(char chan);
+void setChannelsToDefaultSetting();
+void loadLeadOffSettings(char c);
+char getChannelNumber(char n);
+void changeChannelState_maintainRunningState(BYTE chan, int start);
+void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode);
+int changeChannelLeadOffDetect_maintainRunningState(char chan);
+void sendDefaultChannelSettings();
+BOOL stopRunning(void);
+BOOL startRunning(int OUT_TYPE);
+void printRegisters();
+void startFromScratch();
 
 //==============================================================================
 // Macro definitions
@@ -42,10 +63,16 @@ BYTE constrain(BYTE x, BYTE a, BYTE b);
 
 #include <limits.h>     /* for CHAR_BIT */
 
+#define DEC 1
+#define OCT 2
+#define HEX 3
+
 #define BITREAD(value, bit) (((value) >> (bit)) & 0x01)
 #define BITSET(value, bit) ((value) |= (1UL << (bit)))
 #define BITCLEAR(value, bit) ((value) &= ~(1UL << (bit)))
 #define BITWRITE(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
+
+
 
 
 //==============================================================================

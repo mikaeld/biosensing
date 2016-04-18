@@ -30,7 +30,7 @@
 //==============================================================================
 
 float temp = 0.0f;
-BYTE test = 93; // 0x5D
+UINT32 test = 0x5D13; // 0x5D
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -263,7 +263,7 @@ void StateAdsInit(void)
   initialize_ads();
   ADS_getDeviceID(BOARD_ADS);
   
-//  INT32 err = 0;
+  //  INT32 err = 0;
 //  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
 //  
 //  ADS_NO_RESET;
@@ -298,30 +298,16 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
-//  AdsWREG(CONFIG3, 0xE0);
-//  AdsWREG(CONFIG1, 0x96);
-//  AdsWREG(CONFIG2, 0xC0);
-//  AdsWREG(CH1SET, 0x01);
-//  AdsWREG(CH2SET, 0x01);
-//  AdsWREG(CH3SET, 0x01);
-//  AdsWREG(CH4SET, 0x01);
-//  AdsWREG(CH5SET, 0x01);
-//  AdsWREG(CH6SET, 0x01);
-//  AdsWREG(CH7SET, 0x01);
-//  AdsWREG(CH8SET, 0x01);
-//  AdsSTART();
-//  AdsRDATAC();
-  
-  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
-  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  startStreaming();
+//  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
+//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
+//  startStreaming();
   oDevStateFlag = 1;
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
@@ -345,9 +331,24 @@ void StateDevState(void)
 {
   //UINT32 datardy = Port.B.ReadBits(BIT_13);
   LED_EEGACQ_ON;
-  while(!(isDataAvailable())){}   // wait for DRDY pin...
-  updateChannelData(); // get the fresh ADS results
-  sendChannelData();  // serial fire hose
+  if(is_running)
+  {
+    while(!(isDataAvailable())){}   // wait for DRDY pin...
+
+    updateChannelData(); // get the fresh ADS results
+    OBCI.sendChannelData();  // serial fire hose
+  }
+
+  eventSerial();
+  if(serialTrigger)
+  {
+    if((millis() - triggerTimer) > 500)
+    {
+      digitalWrite(LED,HIGH);
+      serialTrigger = false;
+    }
+  }
+
 }
 
 //===============================================================
