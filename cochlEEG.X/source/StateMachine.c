@@ -331,23 +331,23 @@ void StateDevState(void)
 {
   //UINT32 datardy = Port.B.ReadBits(BIT_13);
   LED_EEGACQ_ON;
-  if(is_running)
-  {
-    while(!(isDataAvailable())){}   // wait for DRDY pin...
-
-    updateChannelData(); // get the fresh ADS results
-    OBCI.sendChannelData();  // serial fire hose
-  }
-
-  eventSerial();
-  if(serialTrigger)
-  {
-    if((millis() - triggerTimer) > 500)
-    {
-      digitalWrite(LED,HIGH);
-      serialTrigger = false;
-    }
-  }
+//  if(is_running)
+//  {
+//    while(!(isDataAvailable())){}   // wait for DRDY pin...
+//
+//    updateChannelData(); // get the fresh ADS results
+//    OBCI.sendChannelData();  // serial fire hose
+//  }
+//
+//  eventSerial();
+//  if(serialTrigger)
+//  {
+//    if((millis() - triggerTimer) > 500)
+//    {
+//      digitalWrite(LED,HIGH);
+//      serialTrigger = false;
+//    }
+//  }
 
 }
 

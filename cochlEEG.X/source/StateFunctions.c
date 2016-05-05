@@ -133,55 +133,48 @@ BYTE constrain(BYTE x, BYTE a, BYTE b)
 int plusCounter = 0;
 char testChar;
 unsigned long commandTimer;
+sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
+INT32 err;
 
 void eventSerial()
 {
-  while(Serial0.available())
-  {
-    char inChar = (char)Serial0.read();
-
-    if(plusCounter == 1)
-    {  // if we have received the first 'bun'
-      testChar = inChar;   // this might be the 'patty', stop laughing
-      plusCounter++;       // get ready to look for another 'bun'
-      commandTimer = millis();  // don't wait too long!
+//  while(Uart.Var.oIsRxDataAvailable[UART4]);
+//  
+//  sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
+//  INT32 err; 
+//  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
+  
+  while(Uart.Var.oIsRxDataAvailable[UART4])
+  { 
+    err = Uart.GetRxFifoBuffer(UART4, &buffer, FALSE);
+    char inChar = (char)buffer.buffer[0];
+    
+    if(getChannelSettings)
+    { 
+      loadChannelSettings(inChar); // 'x' expect channel setting parameters  
     }
-
-    if(inChar == '+')
-    {  // if we see a 'bun' on the serial
-      plusCounter++;    // make a note of it
-      if(plusCounter == 3)
-      {  // looks like we got a command character
-        if(millis() - commandTimer < 5)
-        {  // if it's not too late,
-          if(getChannelSettings)
-          { // if we just got an 'x' expect channel setting parameters
-            loadChannelSettings(testChar);  // go get em!
-          }
-          else if(getLeadOffSettings)
-          {  // if we just got a 'z' expect lead-off setting parameters
-            loadLeadOffSettings(testChar); // go get em!
-          }
-          else
-          {
-            getCommand(testChar);    // decode the command
-          }
-        }
-        plusCounter = 0;  // get ready for the next one
-      }
+    else if(getLeadOffSettings)
+    {  
+      loadLeadOffSettings(inChar); // 'z' expect lead-off setting parameters
     }
+    else
+    {
+      getCommand(inChar);    // decode the command
+    }  
   }
 }
-
-
 
 void getCommand(char token){
     switch (token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
-        changeChannelState_maintainRunningState(1,DEACTIVATE); break;
+//        changeChannelState_maintainRunningState(1,DEACTIVATE); 
+        LED_DEBUG1_TOGGLE;
+        break;
       case '2':
-        changeChannelState_maintainRunningState(2,DEACTIVATE); break;
+//        changeChannelState_maintainRunningState(2,DEACTIVATE);
+        LED_DEBUG2_TOGGLE;
+        break;
       case '3':
         changeChannelState_maintainRunningState(3,DEACTIVATE); break;
       case '4':
