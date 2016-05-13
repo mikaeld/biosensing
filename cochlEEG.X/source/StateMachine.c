@@ -259,17 +259,14 @@ void StateMcuInit(void)
 //===============================================================
 void StateAdsInit(void)
 {
-  oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED
-  initialize_ads();
-  ADS_getDeviceID(BOARD_ADS);
-  
-  //  INT32 err = 0;
+  oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED 
+  INT32 err = 0;
 //  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
 //  
 //  ADS_NO_RESET;
 //  Timer.DelayMs(1);
-//  AdsSDATAC(); // Stop data conversion in order to read and write registers 
-//  UINT32 adsIdValue = AdsRREG(ID_REG);  // Read Device ID register (returns 0x3E)
+//  SDATAC(ON_BOARD); // Stop data conversion in order to read and write registers 
+//  UINT32 adsIdValue = RREG(ID_REG, ON_BOARD);  // Read Device ID register (returns 0x3E)
 //  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
 //  {
 //    LED_ERROR_ON;
@@ -280,15 +277,18 @@ void StateAdsInit(void)
 //  {
 //    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
 //      "*** ADS1299 initialization routine COMPLETED ***\r\n");
-    LED_EEGACQ_ON;
-    Timer.DelayMs(200);
-    LED_EEGACQ_OFF;
-    Timer.DelayMs(200);
-    LED_EEGACQ_ON;
-    Timer.DelayMs(200);
-    LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
-    daisyPresent = FALSE;
-    oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
+  
+  startFromScratch(); // Init ADS first time
+    
+  LED_EEGACQ_ON;
+  Timer.DelayMs(200);
+  LED_EEGACQ_OFF;
+  Timer.DelayMs(200);
+  LED_EEGACQ_ON;
+  Timer.DelayMs(200);
+  LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
+  daisyPresent = FALSE;
+  oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
 //  }
 }
 
@@ -329,25 +329,27 @@ void StateAdsStandBy(void)
 //===============================================================
 void StateDevState(void)
 {
-  //UINT32 datardy = Port.B.ReadBits(BIT_13);
+  
   LED_EEGACQ_ON;
-//  if(is_running)
-//  {
-//    while(!(isDataAvailable())){}   // wait for DRDY pin...
-//
-//    updateChannelData(); // get the fresh ADS results
-//    OBCI.sendChannelData();  // serial fire hose
-//  }
-//
-//  eventSerial();
-//  if(serialTrigger)
-//  {
-//    if((millis() - triggerTimer) > 500)
-//    {
-//      digitalWrite(LED,HIGH);
-//      serialTrigger = false;
-//    }
-//  }
+
+  if(is_running)
+  {
+    while(!(isDataAvailable())){}   // wait for DRDY pin...
+
+    updateChannelData(); // get the fresh ADS results
+    sendChannelData();  // serial fire hose
+  }
+
+  eventSerial();
+  
+  if(serialTrigger)
+  {
+    if((millis() - triggerTimer) > 500)
+    {
+      digitalWrite(LED,HIGH);
+      serialTrigger = false;
+    }
+  }
 
 }
 

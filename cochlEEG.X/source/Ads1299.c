@@ -194,11 +194,12 @@ void initialize_ads(){
 
     WREG(CONFIG3,0b11101100,BOTH_ADS); 
     Timer.DelayMs(1);  // enable internal reference drive and etc.
-    for(i=0; i<numChannels; i++){  // turn off the impedance measure signal
+    for(i=0; i<numChannels; i++)
+    {  // turn off the impedance measure signal
       leadOffSettings[i][PCHAN] = OFF;
       leadOffSettings[i][NCHAN] = OFF;
     }
-    verbosity = TRUE;      // when verbosity is TRUE, there will be Serial feedback
+    verbosity = FALSE;      // when verbosity is TRUE, there will be Serial feedback
     firstDataPacket = TRUE;
 }
 
@@ -848,13 +849,13 @@ void ADS_writeChannelData()
 }
 
 
-
-
 BYTE ADS_getDeviceID(int targetSS) {      // simple hello world com check
   BYTE data = RREG(ID_REG,targetSS);
-  if(verbosity){            // verbosity otuput
+  if(verbosity)
+  {            // verbosity otuput
     PrintToUart(UART4,"On Board ADS ID ");
-    Uart.SendDataByte(UART4, data); PrintlnToUart(UART4, " ");
+    printHex(UART4, data);
+    PrintlnToUart(UART4, " ");
   }
   return data;
 }
@@ -954,93 +955,98 @@ void RDATA(int targetSS) {          //  use in Stop Read Continuous mode when DR
 
 BYTE RREG(BYTE _address,int targetSS) 
 {    //  reads ONE register at _address
-    BYTE opcode1 = _address + 0x20;   //  RREG expects 001rrrrr where rrrrr = _address
-    csLow(targetSS);        //  open SPI
-    xfer(opcode1);          //  opcode1
-    xfer(0x00);           //  opcode2
-    UINT32 Value = xfer(0x00);
-            //regData[_address] = xfer(0x00);//  update mirror location with returned BYTE
-    csHigh(targetSS);       //  close SPI 
+  BYTE opcode1 = _address + 0x20;   //  RREG expects 001rrrrr where rrrrr = _address
+  csLow(targetSS);        //  open SPI
+  xfer(opcode1);          //  opcode1
+  xfer(0x00);           //  opcode2
+  regData[_address] = xfer(0x00);//  update mirror location with returned BYTE
+  csHigh(targetSS);       //  close SPI 
   if (verbosity)
   {           //  verbosity output
     printRegisterName(_address);
-    Uart.SendDataByte(UART4, _address);
+    printHex(UART4, _address);
     PrintToUart(UART4,", ");
-    Uart.SendDataByte(UART4, regData[_address]);
+    printHex(UART4, regData[_address]);
     PrintToUart(UART4,", ");
     BYTE j;
-    for(j = 0; j<8; j++){
-      //PrintToUart(UART4,BITREAD(regData[_address], 7-j));
+    for(j = 0; j<8; j++)
+    {
+      PrintToUartDec(UART4,BITREAD(regData[_address], 7-j));
       if(j!=7) PrintToUart(UART4,", ");
     }
     
     PrintlnToUart(UART4, " ");
   }
-    return Value;
-//  return regData[_address];     // return requested register value
+  return regData[_address];     // return requested register value
 }
 
 
 // Read more than one register starting at _address
 void RREGS(BYTE _address, BYTE _numRegistersMinusOne, int targetSS) {
-
-    BYTE opcode1 = _address + 0x20;   //  RREG expects 001rrrrr where rrrrr = _address
-    csLow(targetSS);        //  open SPI
-    xfer(opcode1);          //  opcode1
-    xfer(_numRegistersMinusOne);  //  opcode2
+  BYTE opcode1 = _address + 0x20;   //  RREG expects 001rrrrr where rrrrr = _address
+  csLow(targetSS);        //  open SPI
+  xfer(opcode1);          //  opcode1
+  xfer(_numRegistersMinusOne);  //  opcode2
+  int i;
+  for(i = 0; i <= _numRegistersMinusOne; i++)
+  {
+    regData[_address + i] = xfer(0x00);   //  add register BYTE to mirror array
+  }
+  csHigh(targetSS);       //  close SPI
+  if(verbosity)
+  {            //  verbosity output
     int i;
-    for(i = 0; i <= _numRegistersMinusOne; i++){
-        regData[_address + i] = xfer(0x00);   //  add register BYTE to mirror array
-    }
-    csHigh(targetSS);       //  close SPI
-  if(verbosity){            //  verbosity output
-    int i;
-    for(i = 0; i<= _numRegistersMinusOne; i++){
+    for(i = 0; i<= _numRegistersMinusOne; i++)
+    {
       printRegisterName(_address + i);
-      Uart.SendDataByte(UART4, _address + i);
+      printHex(UART4, _address + i);
       PrintToUart(UART4,", ");
-      Uart.SendDataByte(UART4, regData[_address + i]);
+      printHex(UART4, regData[_address + i]);
       PrintToUart(UART4,", ");
       int j;
-      for(j = 0; j<8; j++){
-        //PrintToUart(UART4,BITREAD(regData[_address + i], 7-j));
+      for(j = 0; j<8; j++)
+      {
+        PrintToUartDec(UART4,BITREAD(regData[_address + i], 7-j));
         if(j!=7) PrintToUart(UART4,", ");
       }
       PrintlnToUart(UART4, " ");
       Timer.DelayMs(30);
     }
-    }
+  }
 }
 
 void WREG(BYTE _address, BYTE _value, int target_SS) { //  Write ONE register at _address
-    BYTE opcode1 = _address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
-    csLow(target_SS);        //  open SPI
-    xfer(opcode1);          //  Send WREG command & address
-    xfer(0x00);           //  Send number of registers to read -1
-    xfer(_value);         //  Write the value to the register
-    csHigh(target_SS);       //  close SPI
-    regData[_address] = _value;     //  update the mirror array
-    if(verbosity){            //  verbosity output
+  BYTE opcode1 = _address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
+  csLow(target_SS);        //  open SPI
+  xfer(opcode1);          //  Send WREG command & address
+  xfer(0x00);           //  Send number of registers to read -1
+  xfer(_value);         //  Write the value to the register
+  csHigh(target_SS);       //  close SPI
+  regData[_address] = _value;     //  update the mirror array
+  if(verbosity)
+  {            //  verbosity output
     PrintToUart(UART4,"Register ");
-    Uart.SendDataByte(UART4, _address);
+    printHex(UART4, _address);
     PrintlnToUart(UART4," modified.");
   }
 }
 
 void WREGS(BYTE _address, BYTE _numRegistersMinusOne, int targetSS) {
-    BYTE opcode1 = _address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
-    csLow(targetSS);        //  open SPI
-    xfer(opcode1);          //  Send WREG command & address
-    xfer(_numRegistersMinusOne);  //  Send number of registers to read -1 
-    int i;
-  for (i=_address; i <=(_address + _numRegistersMinusOne); i++){
+  BYTE opcode1 = _address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
+  csLow(targetSS);        //  open SPI
+  xfer(opcode1);          //  Send WREG command & address
+  xfer(_numRegistersMinusOne);  //  Send number of registers to read -1 
+  int i;
+  for (i=_address; i <=(_address + _numRegistersMinusOne); i++)
+  {
     xfer(regData[i]);     //  Write to the registers
   } 
-    csHigh(targetSS);
-  if(verbosity){
+  csHigh(targetSS);
+  if(verbosity)
+  {
     PrintToUart(UART4,"Registers ");
-    Uart.SendDataByte(UART4, _address); PrintToUart(UART4," to ");
-    Uart.SendDataByte(UART4, _address + _numRegistersMinusOne);
+    printHex(UART4, _address); PrintToUart(UART4," to ");
+    printHex(UART4, _address + _numRegistersMinusOne);
     PrintlnToUart(UART4," modified");
   }
 }

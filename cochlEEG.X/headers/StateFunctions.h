@@ -37,7 +37,7 @@ BYTE constrain(BYTE x, BYTE a, BYTE b);
 INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
 INT32 PrintToUartHex(UartModule_t uartModuleId, UINT32 val);
 INT32 PrintToUartDec(UartModule_t uartModuleId, UINT32 val);
-
+INT32 printHex(UartModule_t uartModuleId, BYTE _data);
 INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
 INT32 PrintToUartChar(UartModule_t uartModuleId, char c);
 BYTE constrain(BYTE x, BYTE a, BYTE b);

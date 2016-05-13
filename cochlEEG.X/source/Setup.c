@@ -78,7 +78,7 @@ void InitTimer(void)
   {
 
   }
-  timerCounterValue = Timer.Open(TIMER_5, 100, SCALE_US);   // Open Timer 5 with a period of 100 us, used for averaging state
+  timerCounterValue = Timer.Open(TIMER_5, 1000, SCALE_US);   // Open Timer 5 with a period of 1 ms, used millis() counter function)
   if (timerCounterValue < 0)
   {
 
@@ -103,7 +103,6 @@ void InitSpi(void)
 {
   INT8 err = 0;
   SpiOpenFlags_t oMasterFlags =   SPI_MASTER_MODE
-                                | SPI_MASTER_SS
                                 | SPI_8_BITS_CHAR
                                 | SPI_ENHANCED_BUFFER_MODE
                                 | SPI_TX_EVENT_BUFFER_EMPTY

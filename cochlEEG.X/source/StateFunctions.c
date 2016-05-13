@@ -32,6 +32,8 @@ extern int leadOffSettingsCounter;
 extern BOOL getLeadOffSettings;
 extern int outputType;  // default to 8 channels
 
+extern volatile UINT32 timeFromStartMs;
+
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
@@ -116,6 +118,12 @@ INT32 PrintlnToUart(UartModule_t uartModuleId, char *string)
     } while (err < 0);
 }
 
+INT32 printHex(UartModule_t uartModuleId, BYTE _data){
+  PrintToUart(uartModuleId, "0x");
+  if(_data < 0x10) PrintToUart(uartModuleId, "0");
+  PrintToUartHex(uartModuleId,_data);
+}
+
 BYTE constrain(BYTE x, BYTE a, BYTE b)
 {
   if(x < a) 
@@ -168,13 +176,9 @@ void getCommand(char token){
     switch (token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
-//        changeChannelState_maintainRunningState(1,DEACTIVATE); 
-        LED_DEBUG1_TOGGLE;
-        break;
+      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':
-//        changeChannelState_maintainRunningState(2,DEACTIVATE);
-        LED_DEBUG2_TOGGLE;
-        break;
+      changeChannelState_maintainRunningState(2,DEACTIVATE); break;
       case '3':
         changeChannelState_maintainRunningState(3,DEACTIVATE); break;
       case '4':
@@ -261,11 +265,11 @@ void getCommand(char token){
 
 //  SERIAL TRIGGER COMMANDS
       case '`':
-//        digitalWrite(LED,LOW);
+        LED_DEBUG1_OFF;
 //        auxData[0] = auxData[1] = auxData[2] = 0x6220;
 //        addAuxToSD = TRUE;
-//        serialTrigger = TRUE;
-//        triggerTimer = millis();
+        serialTrigger = TRUE;
+        triggerTimer = millis();
         break;
 
 

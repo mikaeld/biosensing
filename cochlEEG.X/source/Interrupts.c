@@ -30,25 +30,7 @@
 //==============================================================================
 // VARIABLES
 //==============================================================================
-
-// CAN Messages from other board
-volatile INT8 canGear = 0;
-volatile UINT32 canPitch = 0;
-volatile float canBatteryVoltage = 0.0f;
-volatile float canBatteryCurrent = 0.0f;
-
-volatile BOOL oNewAdcAvailable;
-volatile BOOL oCapture5;
-volatile BOOL oCapture4;
-volatile BOOL oCapture3;
-volatile BOOL oNewCanGear = 0;
-volatile BOOL oNewCanPitch = 0;
-volatile BOOL oNewCanBatteryVoltage = 0;
-volatile BOOL oNewCanBatteryCurrent = 0;
-volatile BOOL  oFirstTimeInCapture3 = 1
-              ,oFirstTimeInCapture4 = 1
-              ,oFirstTimeInCapture5 = 1
-              ;
+volatile UINT32 timeFromStartMs = 0;
 
 /*******************************************************************************
  ***********************                               *************************
@@ -118,7 +100,7 @@ void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_5_VECTOR, T5_INTERRUPT_PRIORITY) Timer5InterruptHandler(void)
 {
-  //o100UsFlag = 1;
+  timeFromStartMs++;
 
 
   // Increment the number of overflows from this timer. Used primarily by Input Capture
@@ -229,7 +211,7 @@ void __ISR(_ADC_VECTOR, ADC_INTERRUPT_PRIO) AdcInterruptHandler(void)
 {
 //  Port.B.ToggleBits(BIT_13);
   Adc.Read();               // Read the enabled channels and puts them in Adc.Var.adcReadValues[]
-  oNewAdcAvailable = 1;
+  //oNewAdcAvailable = 1;
   INTClearFlag(INT_AD1);    // Clear the ADC conversion done interrupt Flag
 }
 //=============================================
@@ -322,15 +304,6 @@ void __ISR(_INPUT_CAPTURE_3_VECTOR, IC3_INT_PRIORITY) InputCapture3InterruptHand
   InputCapture.Var.previousCaptureCountValue[IC3] = InputCapture.Var.currentCaptureCountValue[IC3];
   InputCapture.Var.currentCaptureCountValue [IC3] = InputCapture.ReadCapture(IC3);
 
-  if (!oFirstTimeInCapture3)
-  {
-    oCapture3 = 1;   // Flag that tells that a new Capture event occured
-  }
-  else
-  {
-    oFirstTimeInCapture3 = 0;
-  }
-
   // Clear the interrupt flag
   INTClearFlag(INT_IC3);
 }
@@ -358,15 +331,6 @@ void __ISR(_INPUT_CAPTURE_4_VECTOR, IC4_INT_PRIORITY) InputCapture4InterruptHand
   // Store the timer value of the capture event
   InputCapture.Var.previousCaptureCountValue[IC4] = InputCapture.Var.currentCaptureCountValue[IC4];
   InputCapture.Var.currentCaptureCountValue [IC4] = InputCapture.ReadCapture(IC4);
-
-  if (!oFirstTimeInCapture4)
-  {
-    oCapture4 = 1;   // Flag that tells that a new Capture event occured
-  }
-  else
-  {
-    oFirstTimeInCapture4 = 0;
-  }
 
   // Clear the interrupt flag
   INTClearFlag(INT_IC4);
@@ -396,16 +360,6 @@ void __ISR(_INPUT_CAPTURE_5_VECTOR, IC5_INT_PRIORITY) InputCapture5InterruptHand
   // Store the timer value of the capture event
   InputCapture.Var.previousCaptureCountValue[IC5] = InputCapture.Var.currentCaptureCountValue[IC5];
   InputCapture.Var.currentCaptureCountValue [IC5] = InputCapture.ReadCapture(IC5);
-
-
-  if (!oFirstTimeInCapture5)
-  {
-    oCapture5 = 1;   // Flag that tells that a new Capture event occured
-  }
-  else
-  {
-    oFirstTimeInCapture5 = 0;
-  }
 
   // Clear the interrupt flag
   INTClearFlag(INT_IC5);
@@ -658,121 +612,7 @@ void __ISR(_CAN_1_VECTOR, CAN1_INT_PRIORITY) Can1InterruptHandler(void)
     // handling events
     if ((CANGetModuleEvent(CAN1) & CAN_RX_EVENT) != 0) {
 
-        // Within this, you can check which channel caused the event by using
-        // the CANGetModuleEvent() function which returns a code representing
-        // the highest priority pending event.
-        if (CANGetPendingEventCode(CAN1) == CAN_CHANNEL4_EVENT) {
-
-            // This means that channel 4 caused the event.
-            // The CAN_RX_CHANNEL_NOT_EMPTY event is persistent. You could either
-            // read the channel in the ISR to clear the event condition or as done
-            // here, disable the event source, and set an application flag to
-            // indicate that a message has been received. The event can be
-            // enabled by the application when it has processed one message.
-            // Note that leaving the event enabled would cause the CPU to keep
-            // executing the ISR since the CAN_RX_CHANNEL_NOT_EMPTY event is
-            // persistent (unless the not empty condition is cleared.)
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL4, CAN_RX_CHANNEL_NOT_EMPTY, FALSE);    
-            
-            //Do shit
-            
-            CANUpdateChannel(CAN1, CAN_CHANNEL4);
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL4, CAN_RX_CHANNEL_NOT_EMPTY, TRUE);
-            
-        }
-        else if (CANGetPendingEventCode(CAN1) == CAN_CHANNEL5_EVENT) {
-
-            // This means that channel 5 caused the event.
-            // The CAN_RX_CHANNEL_NOT_EMPTY event is persistent. You could either
-            // read the channel in the ISR to clear the event condition or as done
-            // here, disable the event source, and set an application flag to
-            // indicate that a message has been received. The event can be
-            // enabled by the application when it has processed one message.
-            // Note that leaving the event enabled would cause the CPU to keep
-            // executing the ISR since the CAN_RX_CHANNEL_NOT_EMPTY event is
-            // persistent (unless the not empty condition is cleared.)
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL5, CAN_RX_CHANNEL_NOT_EMPTY, FALSE);    
-            
-            CANRxMessageBuffer *message;
-            message = CANGetRxMessage(CAN1,CAN_CHANNEL5);
-
-            memcpy((void *) &canPitch, &message->data[0], 8);
-            //canPitch = (message->data[1] << 8) | message->data[0];
-            oNewCanPitch = 1;
-            
-            CANUpdateChannel(CAN1, CAN_CHANNEL5);
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL5, CAN_RX_CHANNEL_NOT_EMPTY, TRUE);
-            
-        }
-        else if (CANGetPendingEventCode(CAN1) == CAN_CHANNEL6_EVENT) {
-
-            // This means that channel 6 caused the event.
-            // The CAN_RX_CHANNEL_NOT_EMPTY event is persistent. You could either
-            // read the channel in the ISR to clear the event condition or as done
-            // here, disable the event source, and set an application flag to
-            // indicate that a message has been received. The event can be
-            // enabled by the application when it has processed one message.
-            // Note that leaving the event enabled would cause the CPU to keep
-            // executing the ISR since the CAN_RX_CHANNEL_NOT_EMPTY event is
-            // persistent (unless the not empty condition is cleared.)
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL6, CAN_RX_CHANNEL_NOT_EMPTY, FALSE);
-
-            CANRxMessageBuffer *message;
-            message = CANGetRxMessage(CAN1,CAN_CHANNEL6);
-
-            canGear = message->data[0];
-            oNewCanGear = 1;
-
-            CANUpdateChannel(CAN1, CAN_CHANNEL6);
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL6, CAN_RX_CHANNEL_NOT_EMPTY, TRUE);
-
-        }
-        else if (CANGetPendingEventCode(CAN1) == CAN_CHANNEL7_EVENT) {
-
-            // This means that channel 7 caused the event.
-            // The CAN_RX_CHANNEL_NOT_EMPTY event is persistent. You could either
-            // read the channel in the ISR to clear the event condition or as done
-            // here, disable the event source, and set an application flag to
-            // indicate that a message has been received. The event can be
-            // enabled by the application when it has processed one message.
-            // Note that leaving the event enabled would cause the CPU to keep
-            // executing the ISR since the CAN_RX_CHANNEL_NOT_EMPTY event is
-            // persistent (unless the not empty condition is cleared.)
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL7, CAN_RX_CHANNEL_NOT_EMPTY, FALSE);
-
-            CANRxMessageBuffer *message;
-            message = CANGetRxMessage(CAN1,CAN_CHANNEL7);
-
-            memcpy((void *) &canBatteryVoltage, &message->data[0], 4);
-            oNewCanBatteryVoltage = 1;
-
-            CANUpdateChannel(CAN1, CAN_CHANNEL7);
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL7, CAN_RX_CHANNEL_NOT_EMPTY, TRUE);
-
-        }
-        else if (CANGetPendingEventCode(CAN1) == CAN_CHANNEL8_EVENT) {
-
-            // This means that channel 6 caused the event.
-            // The CAN_RX_CHANNEL_NOT_EMPTY event is persistent. You could either
-            // read the channel in the ISR to clear the event condition or as done
-            // here, disable the event source, and set an application flag to
-            // indicate that a message has been received. The event can be
-            // enabled by the application when it has processed one message.
-            // Note that leaving the event enabled would cause the CPU to keep
-            // executing the ISR since the CAN_RX_CHANNEL_NOT_EMPTY event is
-            // persistent (unless the not empty condition is cleared.)
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL8, CAN_RX_CHANNEL_NOT_EMPTY, FALSE);
-
-            CANRxMessageBuffer *message;
-            message = CANGetRxMessage(CAN1,CAN_CHANNEL8);
-
-            memcpy((void *) &canBatteryCurrent, &message->data[0], 4);
-            oNewCanBatteryCurrent = 1;
-
-            CANUpdateChannel(CAN1, CAN_CHANNEL8);
-            CANEnableChannelEvent(CAN1, CAN_CHANNEL8, CAN_RX_CHANNEL_NOT_EMPTY, TRUE);
-
-        }
+        
     }
 
     // The CAN1 Interrupt flag is  cleared at the end of the interrupt routine.

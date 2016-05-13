@@ -72,7 +72,6 @@ void WREG(BYTE,BYTE,int);       // write one ADS register
 void WREGS(BYTE,BYTE,int);      // write multiple ADS registers
 BYTE ADS_getDeviceID(int);         
 void printRegisterName(BYTE);   // used for verbosity
-void printHex(BYTE);            // used for verbosity
 void updateChannelData(void);   // retrieve data from ADS
 void updateBoardData(void);
 void updateDaisyData(void);
