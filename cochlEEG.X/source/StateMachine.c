@@ -340,14 +340,15 @@ void StateDevState(void)
     sendChannelData();  // serial fire hose
   }
 
+  Timer.DelayMs(100);
   eventSerial();
   
   if(serialTrigger)
   {
     if((millis() - triggerTimer) > 500)
     {
-      digitalWrite(LED,HIGH);
-      serialTrigger = false;
+      LED_DEBUG1_ON;
+      serialTrigger = FALSE;
     }
   }
 

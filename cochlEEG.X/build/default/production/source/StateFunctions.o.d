@@ -19,4 +19,5 @@ source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookTimer.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h  \
- source/../headers/Ads1299.h 
+ source/../headers/Ads1299.h  \
+source/../headers/Interrupts.h 

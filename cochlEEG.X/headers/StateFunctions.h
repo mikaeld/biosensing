@@ -56,6 +56,7 @@ BOOL stopRunning(void);
 BOOL startRunning(int OUT_TYPE);
 void printRegisters();
 void startFromScratch();
+UINT32 millis();
 
 //==============================================================================
 // Macro definitions

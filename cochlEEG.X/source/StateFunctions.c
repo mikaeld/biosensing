@@ -22,6 +22,7 @@
 
 #include "..\headers\StateFunctions.h"
 #include "..\headers\Ads1299.h"
+#include "..\headers\Interrupts.h"
 
 extern BOOL is_running;    // this flag is set in serialEvent on reciept of ascii prompt
 // these are used to change individual channel settings from PC
@@ -32,6 +33,8 @@ extern int leadOffSettingsCounter;
 extern BOOL getLeadOffSettings;
 extern int outputType;  // default to 8 channels
 
+extern BOOL serialTrigger;
+extern BOOL triggerTimer;
 extern volatile UINT32 timeFromStartMs;
 
 //==============================================================================
@@ -146,29 +149,40 @@ INT32 err;
 
 void eventSerial()
 {
-//  while(Uart.Var.oIsRxDataAvailable[UART4]);
-//  
-//  sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
-//  INT32 err; 
-//  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
-  
   while(Uart.Var.oIsRxDataAvailable[UART4])
   { 
     err = Uart.GetRxFifoBuffer(UART4, &buffer, FALSE);
     char inChar = (char)buffer.buffer[0];
-    
-    if(getChannelSettings)
-    { 
-      loadChannelSettings(inChar); // 'x' expect channel setting parameters  
+    if(plusCounter == 1)
+    {  // if we have received the first 'bun'
+      testChar = inChar;   // this might be the 'patty', stop laughing
+      plusCounter++;       // get ready to look for another 'bun'
+      commandTimer = millis();  // don't wait too long!
     }
-    else if(getLeadOffSettings)
-    {  
-      loadLeadOffSettings(inChar); // 'z' expect lead-off setting parameters
+
+    if(inChar == '+')
+    {  // if we see a 'bun' on the serial
+      plusCounter++;    // make a note of it
+      if(plusCounter == 3)
+      {  // looks like we got a command character
+        if(millis() - commandTimer < 5)
+        {  // if it's not too late,
+          if(getChannelSettings)
+          { // if we just got an 'x' expect channel setting parameters
+            loadChannelSettings(testChar);  // go get em!
+          }
+          else if(getLeadOffSettings)
+          {  // if we just got a 'z' expect lead-off setting parameters
+            loadLeadOffSettings(testChar); // go get em!
+          }
+          else
+          {
+            getCommand(testChar);    // decode the command
+          }
+        }
+        plusCounter = 0;  // get ready for the next one
+      }
     }
-    else
-    {
-      getCommand(inChar);    // decode the command
-    }  
   }
 }
 
@@ -553,4 +567,9 @@ void startFromScratch(){
 //    PrintToUart(UART4, "LIS3DH Device ID: 0x"); PrintlnToUart(UART4, LIS3DH_getDeviceID(),HEX);
     sendEOT();
   }
+}
+
+
+UINT32 millis(){
+  return timeFromStartMs;
 }
