@@ -310,21 +310,21 @@ void StateAdsConfig(void)
 //  
 //  startStreaming();
   
-  SDATAC(BOARD_ADS);
-  WREG(CONFIG3, 0xE0, BOARD_ADS);
-  WREG(CONFIG1, 0x96, BOARD_ADS);
-  WREG(CONFIG2, 0xC0, BOARD_ADS);
-  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH3SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH4SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH5SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH6SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH7SET,ADSINPUT_SHORTED, BOARD_ADS);
-  WREG(CH8SET,ADSINPUT_SHORTED, BOARD_ADS);
-  
-  START(BOARD_ADS);
-  RDATAC(BOARD_ADS);
+//  SDATAC(BOARD_ADS);
+//  WREG(CONFIG3, 0xE0, BOARD_ADS);
+//  WREG(CONFIG1, 0x96, BOARD_ADS);
+//  WREG(CONFIG2, 0xC0, BOARD_ADS);
+//  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH3SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH4SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH5SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH6SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH7SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  WREG(CH8SET,ADSINPUT_SHORTED, BOARD_ADS);
+//  
+//  START(BOARD_ADS);
+//  RDATAC(BOARD_ADS);
   
   
 //  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
@@ -359,26 +359,23 @@ void StateDevState(void)
 {
   
   LED_EEGACQ_ON;
-
-//  if(is_running)
-//  {
+  if(is_running)
+  {
     while(!(isDataAvailable())){}   // wait for DRDY pin...
-    LED_DEBUG1_ON;
     updateChannelData(); // get the fresh ADS results
     sendChannelData();  // serial fire hose
-//  }
-//
-//  Timer.DelayMs(100);
-//  eventSerial();
-//  
-//  if(serialTrigger)
-//  {
-//    if((millis() - triggerTimer) > 500)
-//    {
-//      LED_DEBUG1_ON;
-//      serialTrigger = FALSE;
-//    }
-//  }
+  }
+
+  eventSerial();
+  
+  if(serialTrigger)
+  {
+    if((millis() - triggerTimer) > 500)
+    {
+      LED_DEBUG1_ON;
+      serialTrigger = FALSE;
+    }
+  }
 
 }
 

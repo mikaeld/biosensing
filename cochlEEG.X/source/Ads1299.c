@@ -33,7 +33,8 @@
 //==============================================================================
 // Variable definitions
 //==============================================================================
-
+BYTE footer = FOOTER;
+BYTE header = HEADER;
 
 
 //==============================================================================
@@ -68,7 +69,7 @@ void startStreaming(){  // needs daisy functionality
 } 
 
 void sendChannelData(){
-  
+  Uart.SendDataByte(UART4, header);
   Uart.SendDataByte(UART4,sampleCounter); // 1 byte
   ADS_writeChannelData();       // 24 bytes  
   if(useAux){
@@ -81,6 +82,7 @@ void sendChannelData(){
       Uart.SendDataByte(UART4,zero);
     }
   }
+  Uart.SendDataByte(UART4, footer);
   sampleCounter++;
 }
 

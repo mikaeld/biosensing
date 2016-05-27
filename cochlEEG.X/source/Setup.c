@@ -228,7 +228,7 @@ void InitPorts(void)
 
   Port.B.SetPinsDigitalOut(BIT_5      // LED_ERROR
                           | BIT_4     // LED_CAN
-                          | BIT_10    // ADS1299 RESET
+                          | BIT_15    // ADS1299 RESET
                           | BIT_11
                           | BIT_12
                           );
