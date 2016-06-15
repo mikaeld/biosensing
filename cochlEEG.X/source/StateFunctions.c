@@ -547,14 +547,7 @@ void startFromScratch(){
   if(!is_running){
     initialize_ads();
     Timer.DelayMs(500);
-    PrintlnToUart(UART4, "OpenBCI V3 16 channel");
     configureLeadOffDetection(LOFF_MAG_6NA, LOFF_FREQ_31p2HZ);
-    PrintToUart(UART4, "On Board ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_BOARD)); PrintlnToUart(UART4, " ");
-    if(daisyPresent){  // library will set this in initialize() if daisy present and functional
-      PrintToUart(UART4, "On Daisy ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_DAISY)); PrintlnToUart(UART4, " ");
-    }
-//    PrintToUart(UART4, "LIS3DH Device ID: 0x"); PrintlnToUart(UART4, LIS3DH_getDeviceID(),HEX);
-    sendEOT();
   }
 }
 

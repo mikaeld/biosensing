@@ -29,6 +29,10 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
+BYTE SpiRxBuffer[3] = {0};
+float packet[9] = {0};
+UINT32 packetCounter = 0;
+UINT32 channelDataBuffer = 0;
 float temp = 0.0f;
 UINT32 test = 0x5D13; // 0x5D
 
@@ -309,10 +313,18 @@ void StateAdsConfig(void)
 //  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
 //  
 //  startStreaming();
+  SpiRxBuffer[0] = 0x33;
+  SpiRxBuffer[1] = 0x22;
+  SpiRxBuffer[2] = 0x11;
+  INT8 tt = -128;
+
+  channelDataBuffer = (SpiRxBuffer[0] << 16);
+  channelDataBuffer = channelDataBuffer | (SpiRxBuffer[1] << 8);
   
-//  SDATAC(BOARD_ADS);
-//  WREG(CONFIG3, 0xE0, BOARD_ADS);
-//  WREG(CONFIG1, 0x96, BOARD_ADS);
+  
+  SDATAC(BOARD_ADS);
+  WREG(CONFIG3, 0xE0, BOARD_ADS);
+  WREG(CONFIG1, 0x96, BOARD_ADS);
 //  WREG(CONFIG2, 0xC0, BOARD_ADS);
 //  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
 //  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
@@ -326,15 +338,18 @@ void StateAdsConfig(void)
 //  START(BOARD_ADS);
 //  RDATAC(BOARD_ADS);
   
+  WREG(CONFIG2, 0xD0, BOARD_ADS);
   
-//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  
+  RDATAC(BOARD_ADS);
   
   oDevStateFlag = 1;
   INT32 err = 0;
@@ -359,23 +374,23 @@ void StateDevState(void)
 {
   
   LED_EEGACQ_ON;
-  if(is_running)
-  {
-    while(!(isDataAvailable())){}   // wait for DRDY pin...
-    updateChannelData(); // get the fresh ADS results
-    sendChannelData();  // serial fire hose
-  }
-
-  eventSerial();
-  
-  if(serialTrigger)
-  {
-    if((millis() - triggerTimer) > 500)
-    {
-      LED_DEBUG1_ON;
-      serialTrigger = FALSE;
-    }
-  }
+//  if(is_running)
+//  {
+//    while(!(isDataAvailable())){}   // wait for DRDY pin...
+//    
+//    
+//  }
+//
+//  eventSerial();
+//  
+//  if(serialTrigger)
+//  {
+//    if((millis() - triggerTimer) > 500)
+//    {
+//      LED_DEBUG1_ON;
+//      serialTrigger = FALSE;
+//    }
+//  }
 
 }
 
