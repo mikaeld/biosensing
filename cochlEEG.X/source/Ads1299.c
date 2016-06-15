@@ -830,21 +830,31 @@ void stopADS()
 void ADS_writeChannelData() 
 { 
   
-  if(daisyPresent){
-    if(sampleCounter % 2 != 0){ //CHECK SAMPLE ODD-EVEN AND SEND THE APPROPRIATE ADS DATA
+  if(daisyPresent)
+  {
+    if(sampleCounter % 2 != 0)
+    { //CHECK SAMPLE ODD-EVEN AND SEND THE APPROPRIATE ADS DATA
       int i;
-      for (i=0; i<24; i++){ 
+      for (i=0; i<24; i++)
+      { 
         Uart.SendDataByte(UART4,meanBoardDataRaw[i]); // send board data on odd samples
       }
-    }else{
+    }
+    else
+    {
       int i;
-      for (i=0; i<24; i++){
+      for (i=0; i<24; i++)
+      {
         Uart.SendDataByte(UART4,meanDaisyDataRaw[i]); // send daisy data on even samples
       }
     }
-  }else{
+  }
+  
+  else
+  {
     int i;
-    for(i=0; i<24; i++){
+    for(i=0; i<24; i++)
+    {
       Uart.SendDataByte(UART4,boardChannelDataRaw[i]);
     }
   }

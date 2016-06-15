@@ -147,6 +147,20 @@ unsigned long commandTimer;
 sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
 INT32 err;
 
+INT32 interpret24bitAsInt32(UINT8 byteArray[]) 
+{     
+  INT32 newInt = (((0xFF & byteArray[0]) << 16) | ((0xFF & byteArray[1]) << 8) | (0xFF & byteArray[2]));  
+  if ((newInt & 0x00800000) > 0) 
+  {  
+    newInt |= 0xFF000000;  
+  } 
+  else 
+  {  
+    newInt &= 0x00FFFFFF;  
+  }  
+  return newInt;  
+}  
+
 void eventSerial()
 {
 //  while(Uart.Var.oIsRxDataAvailable[UART4]);
