@@ -35,6 +35,8 @@
 //==============================================================================
 BYTE footer = FOOTER;
 BYTE header = HEADER;
+float AdsPacket[9] = {0};
+float PacketCounter = 1;
 
 
 //==============================================================================
@@ -692,13 +694,12 @@ void startADS(void) // NEEDS ADS ADDRESS, OR BOTH?
 // Query to see if data is available from the ADS1299...return TRUE is data is available
 BOOL isDataAvailable(void)
 {
-  return (!(Port.B.ReadBits(BIT_13)));
+  return (!(ADS_DRDY));
 }
   
 // CALLED WHEN DRDY PIN IS ASSERTED. NEW ADS DATA AVAILABLE!
 void updateChannelData(){ 
   updateBoardData();
-  if(daisyPresent) {updateDaisyData();}
 }
 
 
@@ -707,12 +708,6 @@ void updateBoardData(){
   int ByteCounter = 0;
   int i;
 
-  if(daisyPresent && !firstDataPacket){
-    for(i=0; i<8; i++){  // shift and average the BYTE arrays
-      lastBoardChannelDataInt[i] = boardChannelDataInt[i]; // remember the last samples
-    }
-  }
-  
   csLow(BOARD_ADS);       //  open SPI
   for(i=0; i<3; i++){ 
     inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
@@ -739,22 +734,6 @@ void updateBoardData(){
     {
       boardChannelDataInt[i] &= 0x00FFFFFF;
     }
-  }
-  if(daisyPresent && !firstDataPacket){
-    ByteCounter = 0;
-    for(i=0; i<8; i++)
-    {   // take the average of this and the last sample
-      meanBoardChannelDataInt[i] = (lastBoardChannelDataInt[i] + boardChannelDataInt[i])/2;
-    }
-    
-    for(i=0; i<8; i++)
-    {  // place the average values in the meanRaw array
-      int b;
-      for(b=2; b>=0; b--){
-        meanBoardDataRaw[ByteCounter] = (meanBoardChannelDataInt[i] >> (b*8)) & 0xFF;
-        ByteCounter++;
-      }
-    }    
   }
     
   if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
@@ -825,11 +804,26 @@ void stopADS()
 //write as binary each channel's data
 void ADS_writeChannelData() 
 { 
+  AdsPacket[0] = PacketCounter;
+  
   int i;
-  for(i=0; i<24; i++)
+  for(i=0; i<8; i++)
   {
-    Uart.SendDataByte(UART4,boardChannelDataRaw[i]);
+    AdsPacket[i+1] = boardChannelDataInt[i];
   }
+  int j=0;
+  for(j=0; j < 9 ; j++)
+  {
+    BYTE data[sizeof(float)];
+    float f = AdsPacket[j];
+    memcpy(data, &f, sizeof f);
+    Uart.SendDataByte(UART4,*(data + 0));
+    Uart.SendDataByte(UART4,*(data + 1));
+    Uart.SendDataByte(UART4,*(data + 2));
+    Uart.SendDataByte(UART4,*(data + 3));
+  }
+  
+  PacketCounter++;
 }
 
 

@@ -153,13 +153,13 @@ INT32 interpret24bitAsInt32(UINT8 byteArray[])
   INT32 newInt = (((0xFF & byteArray[0]) << 16) | ((0xFF & byteArray[1]) << 8) | (0xFF & byteArray[2]));  
   if ((newInt & 0x00800000) > 0) 
   {  
-    newInt |= 0xFF000000;  
+    newInt = (INT32)((UINT32)newInt | (UINT32)0xFF000000);
   } 
   else 
   {  
-    newInt &= 0x00FFFFFF;  
-  }  
-  return newInt;  
+    newInt = (INT32)((UINT32)newInt & (UINT32)0x00FFFFFF); 
+  }
+return newInt;
 }  
 
 void eventSerial()
@@ -194,6 +194,7 @@ void getCommand(char token){
     switch (token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
+        RDATAC(BOARD_ADS);
         oDevStateFlag = 1;
 //      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':

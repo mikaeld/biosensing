@@ -41,6 +41,7 @@ INT32 printHex(UartModule_t uartModuleId, BYTE _data);
 INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
 INT32 PrintToUartChar(UartModule_t uartModuleId, char c);
 BYTE constrain(BYTE x, BYTE a, BYTE b);
+INT32 interpret24bitAsInt32(UINT8 byteArray[]);
 void getCommand(char token);
 void sendEOT();
 void loadChannelSettings(char c);

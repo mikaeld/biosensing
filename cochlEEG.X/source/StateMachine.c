@@ -30,9 +30,11 @@
 //==============================================================================
 
 float count = 1;
-UINT32 test = 0x5D13; // 0x5D
+//UINT32 test = 0x5D13; // 0x5D
 float testArray[9] = {0};
 UINT8 odd = 1;
+INT32 test2 = 0;
+
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -290,6 +292,24 @@ void StateAdsInit(void)
   Timer.DelayMs(200);
   LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
   daisyPresent = FALSE;
+  
+  SDATAC(BOARD_ADS);
+  WREG(CONFIG3, 0xE0, BOARD_ADS);
+  WREG(CONFIG1, 0x96, BOARD_ADS);
+  
+  WREG(CONFIG2, 0xD0, BOARD_ADS);
+  
+  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  
+  
+  
   oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
 //  }
 }
@@ -300,6 +320,7 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
+  
 //  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
 //  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
 //  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
@@ -320,9 +341,6 @@ void StateAdsConfig(void)
 //  channelDataBuffer = channelDataBuffer | (SpiRxBuffer[1] << 8);
   
   
-  SDATAC(BOARD_ADS);
-  WREG(CONFIG3, 0xE0, BOARD_ADS);
-  WREG(CONFIG1, 0x96, BOARD_ADS);
 //  WREG(CONFIG2, 0xC0, BOARD_ADS);
 //  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
 //  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
@@ -335,20 +353,7 @@ void StateAdsConfig(void)
 //  
 //  START(BOARD_ADS);
 //  RDATAC(BOARD_ADS);
-  
-  WREG(CONFIG2, 0xD0, BOARD_ADS);
-  
-  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  
-//  RDATAC(BOARD_ADS);
-  
+    
   eventSerial();
   
   
@@ -372,50 +377,12 @@ void StateAdsStandBy(void)
 //===============================================================
 void StateDevState(void)
 {
-  
   LED_EEGACQ_ON;
-  testArray[0] = count;
-  if(odd)
-  {
-    testArray[1] = 1.0f;
-    testArray[2] = 2.0f;
-    testArray[3] = 3.0f;
-    testArray[4] = 4.0f;
-    testArray[5] = 5.0f;
-    testArray[6] = 6.0f;
-    testArray[7] = 7.0f;
-    testArray[8] = 8.0f;
-    odd = 0;
-  }
-  else
-  {
-    testArray[1] = 2.0f;
-    testArray[2] = 3.0f;
-    testArray[3] = 4.0f;
-    testArray[4] = 5.0f;
-    testArray[5] = 6.0f;
-    testArray[6] = 7.0f;
-    testArray[7] = 8.0f;
-    testArray[8] = 9.0f;
-    odd = 1;
-  }
-
- 
-  int i=0;
-  for(i=0; i < 9 ; i++)
-  {
-    BYTE data[sizeof(float)];
-    float f = testArray[i];
-    memcpy(data, &f, sizeof f);
-    Uart.SendDataByte(UART4,*(data + 0));
-    Uart.SendDataByte(UART4,*(data + 1));
-    Uart.SendDataByte(UART4,*(data + 2));
-    Uart.SendDataByte(UART4,*(data + 3));
-  }
-  count++;
-  Timer.DelayMs(100);
- 
+    
+  while(!(isDataAvailable())){}   // wait for DRDY pin...
   
+  updateChannelData(); // get the fresh ADS results
+  sendChannelData();  // serial fire hose
 }
 
 //===============================================================
