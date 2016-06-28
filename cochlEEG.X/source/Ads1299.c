@@ -69,21 +69,8 @@ void startStreaming(){  // needs daisy functionality
 } 
 
 void sendChannelData(){
-  Uart.SendDataByte(UART4, header);
-  Uart.SendDataByte(UART4,sampleCounter); // 1 byte
+//  Uart.SendDataByte(UART4,sampleCounter); // 1 byte
   ADS_writeChannelData();       // 24 bytes  
-  if(useAux){
-    //writeAuxData();             // 6 bytes of aux data
-  }
-  else{
-    BYTE zero = 0x00;
-    int i;
-    for(i=0; i<6; i++){
-      Uart.SendDataByte(UART4,zero);
-    }
-  }
-  Uart.SendDataByte(UART4, footer);
-  sampleCounter++;
 }
 
 void stopStreaming(){
@@ -714,6 +701,7 @@ void updateChannelData(){
   if(daisyPresent) {updateDaisyData();}
 }
 
+
 void updateBoardData(){
   BYTE inByte;
   int ByteCounter = 0;
@@ -724,6 +712,7 @@ void updateBoardData(){
       lastBoardChannelDataInt[i] = boardChannelDataInt[i]; // remember the last samples
     }
   }
+  
   csLow(BOARD_ADS);       //  open SPI
   for(i=0; i<3; i++){ 
     inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
@@ -740,19 +729,26 @@ void updateBoardData(){
   }
   csHigh(BOARD_ADS);        //  close SPI
   // need to convert 24bit to 32bit if using the filter
-  for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-    if(BITREAD(boardChannelDataInt[i],23) == 1){ 
+  for(i=0; i<8; i++)
+  {     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
+    if(BITREAD(boardChannelDataInt[i],23) == 1)
+    { 
       boardChannelDataInt[i] |= 0xFF000000;
-    }else{
+    }
+    else
+    {
       boardChannelDataInt[i] &= 0x00FFFFFF;
     }
   }
   if(daisyPresent && !firstDataPacket){
     ByteCounter = 0;
-    for(i=0; i<8; i++){   // take the average of this and the last sample
+    for(i=0; i<8; i++)
+    {   // take the average of this and the last sample
       meanBoardChannelDataInt[i] = (lastBoardChannelDataInt[i] + boardChannelDataInt[i])/2;
     }
-    for(i=0; i<8; i++){  // place the average values in the meanRaw array
+    
+    for(i=0; i<8; i++)
+    {  // place the average values in the meanRaw array
       int b;
       for(b=2; b>=0; b--){
         meanBoardDataRaw[ByteCounter] = (meanBoardChannelDataInt[i] >> (b*8)) & 0xFF;
@@ -829,34 +825,10 @@ void stopADS()
 //write as binary each channel's data
 void ADS_writeChannelData() 
 { 
-  
-  if(daisyPresent)
+  int i;
+  for(i=0; i<24; i++)
   {
-    if(sampleCounter % 2 != 0)
-    { //CHECK SAMPLE ODD-EVEN AND SEND THE APPROPRIATE ADS DATA
-      int i;
-      for (i=0; i<24; i++)
-      { 
-        Uart.SendDataByte(UART4,meanBoardDataRaw[i]); // send board data on odd samples
-      }
-    }
-    else
-    {
-      int i;
-      for (i=0; i<24; i++)
-      {
-        Uart.SendDataByte(UART4,meanDaisyDataRaw[i]); // send daisy data on even samples
-      }
-    }
-  }
-  
-  else
-  {
-    int i;
-    for(i=0; i<24; i++)
-    {
-      Uart.SendDataByte(UART4,boardChannelDataRaw[i]);
-    }
+    Uart.SendDataByte(UART4,boardChannelDataRaw[i]);
   }
 }
 

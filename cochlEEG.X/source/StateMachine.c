@@ -29,12 +29,10 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
-BYTE SpiRxBuffer[3] = {0};
-float packet[9] = {0};
-UINT32 packetCounter = 0;
-UINT32 channelDataBuffer = 0;
-float temp = 0.0f;
+float count = 1;
 UINT32 test = 0x5D13; // 0x5D
+float testArray[9] = {0};
+UINT8 odd = 1;
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -313,13 +311,13 @@ void StateAdsConfig(void)
 //  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
 //  
 //  startStreaming();
-  SpiRxBuffer[0] = 0x33;
-  SpiRxBuffer[1] = 0x22;
-  SpiRxBuffer[2] = 0x11;
-  INT8 tt = -128;
-
-  channelDataBuffer = (SpiRxBuffer[0] << 16);
-  channelDataBuffer = channelDataBuffer | (SpiRxBuffer[1] << 8);
+//  SpiRxBuffer[0] = 0x33;
+//  SpiRxBuffer[1] = 0x22;
+//  SpiRxBuffer[2] = 0x11;
+//  INT8 tt = -128;
+//
+//  channelDataBuffer = (SpiRxBuffer[0] << 16);
+//  channelDataBuffer = channelDataBuffer | (SpiRxBuffer[1] << 8);
   
   
   SDATAC(BOARD_ADS);
@@ -349,9 +347,11 @@ void StateAdsConfig(void)
   WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
   WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
   
-  RDATAC(BOARD_ADS);
+//  RDATAC(BOARD_ADS);
   
-  oDevStateFlag = 1;
+  eventSerial();
+  
+  
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
 }
@@ -374,24 +374,48 @@ void StateDevState(void)
 {
   
   LED_EEGACQ_ON;
-//  if(is_running)
-//  {
-//    while(!(isDataAvailable())){}   // wait for DRDY pin...
-//    
-//    
-//  }
-//
-//  eventSerial();
-//  
-//  if(serialTrigger)
-//  {
-//    if((millis() - triggerTimer) > 500)
-//    {
-//      LED_DEBUG1_ON;
-//      serialTrigger = FALSE;
-//    }
-//  }
+  testArray[0] = count;
+  if(odd)
+  {
+    testArray[1] = 1.0f;
+    testArray[2] = 2.0f;
+    testArray[3] = 3.0f;
+    testArray[4] = 4.0f;
+    testArray[5] = 5.0f;
+    testArray[6] = 6.0f;
+    testArray[7] = 7.0f;
+    testArray[8] = 8.0f;
+    odd = 0;
+  }
+  else
+  {
+    testArray[1] = 2.0f;
+    testArray[2] = 3.0f;
+    testArray[3] = 4.0f;
+    testArray[4] = 5.0f;
+    testArray[5] = 6.0f;
+    testArray[6] = 7.0f;
+    testArray[7] = 8.0f;
+    testArray[8] = 9.0f;
+    odd = 1;
+  }
 
+ 
+  int i=0;
+  for(i=0; i < 9 ; i++)
+  {
+    BYTE data[sizeof(float)];
+    float f = testArray[i];
+    memcpy(data, &f, sizeof f);
+    Uart.SendDataByte(UART4,*(data + 0));
+    Uart.SendDataByte(UART4,*(data + 1));
+    Uart.SendDataByte(UART4,*(data + 2));
+    Uart.SendDataByte(UART4,*(data + 3));
+  }
+  count++;
+  Timer.DelayMs(100);
+ 
+  
 }
 
 //===============================================================

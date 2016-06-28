@@ -32,6 +32,7 @@ extern int channelSettingsCounter; // used to retrieve channel settings from ser
 extern int leadOffSettingsCounter;
 extern BOOL getLeadOffSettings;
 extern int outputType;  // default to 8 channels
+extern INT8 oDevStateFlag;
 
 extern BOOL serialTrigger;
 extern BOOL triggerTimer;
@@ -193,7 +194,8 @@ void getCommand(char token){
     switch (token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
-      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
+        oDevStateFlag = 1;
+//      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':
       changeChannelState_maintainRunningState(2,DEACTIVATE); break;
       case '3':
@@ -339,7 +341,7 @@ void getCommand(char token){
      case 's':  // stop streaming data
 //        if(SDfileOpen) stampSD(DEACTIVATE);       // time stamp the stop time
 //        if(useAccel){disable_accel();}  // shut down the accelerometer if you're using it
-        stopRunning();
+//        stopRunning();
         break;
       case 'f':
 //         useFilters = TRUE;
