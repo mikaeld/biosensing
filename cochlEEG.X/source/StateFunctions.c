@@ -194,7 +194,7 @@ void getCommand(char token){
     switch (token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
-        RDATAC(BOARD_ADS);
+        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_SLOW);
         oDevStateFlag = 1;
 //      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':
@@ -486,10 +486,9 @@ void changeChannelState_maintainRunningState(BYTE chan, int start)
 
 void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode)
 {
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
   //must stop running to change channel settings
-  stopRunning(); Timer.DelayMs(10);
+  stopADS();  
+  Timer.DelayMs(10);
 
   //set the test signal to the desired state
   configureInternalTestSignal(amplitudeCode,freqCode);
@@ -497,9 +496,7 @@ void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, 
   changeInputType(testInputCode);
 
   //restart, if it was running before
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);
-  }
+  startADS();
 }
 
 int changeChannelLeadOffDetect_maintainRunningState(char chan)

@@ -809,7 +809,7 @@ void ADS_writeChannelData()
   int i;
   for(i=0; i<8; i++)
   {
-    AdsPacket[i+1] = boardChannelDataInt[i];
+    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5/((2^23)-1);  // ADS1299 Datasheet page 25
   }
   int j=0;
   for(j=0; j < 9 ; j++)
