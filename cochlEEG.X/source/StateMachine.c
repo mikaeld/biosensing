@@ -29,7 +29,7 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
-float count = 1;
+float count = 0;
 //UINT32 test = 0x5D13; // 0x5D
 float testArray[9] = {0};
 UINT8 odd = 1;
@@ -383,6 +383,49 @@ void StateDevState(void)
   
   updateChannelData(); // get the fresh ADS results
   sendChannelData();  // serial fire hose
+  
+//  testArray[0] = count;
+//  if(odd)
+//  {
+//    testArray[1] = 1.0f;
+//    testArray[2] = 2.0f;
+//    testArray[3] = 3.0f;
+//    testArray[4] = 4.0f;
+//    testArray[5] = 5.0f;
+//    testArray[6] = 6.0f;
+//    testArray[7] = 7.0f;
+//    testArray[8] = 8.0f;
+//    odd = 0;
+//  }
+//  else
+//  {
+//    testArray[1] = 2.0f;
+//    testArray[2] = 3.0f;
+//    testArray[3] = 4.0f;
+//    testArray[4] = 5.0f;
+//    testArray[5] = 6.0f;
+//    testArray[6] = 7.0f;
+//    testArray[7] = 8.0f;
+//    testArray[8] = 9.0f;
+//    odd = 1;
+//  }
+//  
+//  sUartLineBuffer_t buffer = {0};
+//  buffer.length = 36;
+//  int i=0;
+//  for(i=0; i < 9 ; i++)
+//  {
+//    float f = testArray[i];
+//    memcpy((void *)&buffer.buffer[i*4], (void *)&f, 4);
+//  }
+//  
+//  INT32 err = 0;
+//  do
+//  {
+//    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+//  }
+//  while ( err < 0);
+//  count++;  
 }
 
 //===============================================================

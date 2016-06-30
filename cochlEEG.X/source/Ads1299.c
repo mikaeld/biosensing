@@ -37,6 +37,7 @@ BYTE footer = FOOTER;
 BYTE header = HEADER;
 float AdsPacket[9] = {0};
 float PacketCounter = 1;
+sUartLineBuffer_t buffer = {0};
 
 
 //==============================================================================
@@ -805,23 +806,41 @@ void stopADS()
 void ADS_writeChannelData() 
 { 
   AdsPacket[0] = PacketCounter;
-  
+  sUartLineBuffer_t buffer = {0};
+  buffer.length = 36;
+
   int i;
   for(i=0; i<8; i++)
   {
     AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5/((2^23)-1);  // ADS1299 Datasheet page 25
   }
-  int j=0;
+
+  int j;
   for(j=0; j < 9 ; j++)
   {
-    BYTE data[sizeof(float)];
     float f = AdsPacket[j];
-    memcpy(data, &f, sizeof f);
-    Uart.SendDataByte(UART4,*(data + 0));
-    Uart.SendDataByte(UART4,*(data + 1));
-    Uart.SendDataByte(UART4,*(data + 2));
-    Uart.SendDataByte(UART4,*(data + 3));
+    memcpy((void *)&buffer.buffer[j*4], (void *)&f, 4);
   }
+  
+  INT32 err = 0;
+  do
+  {
+    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+  }
+  while ( err < 0);  
+  
+  
+//  int j=0;
+//  for(j=0; j < 9 ; j++)
+//  {
+//    BYTE data[sizeof(float)];
+//    float f = AdsPacket[j];
+//    memcpy(data, &f, sizeof f);
+//    Uart.SendDataByte(UART4,*(data + 0));
+//    Uart.SendDataByte(UART4,*(data + 1));
+//    Uart.SendDataByte(UART4,*(data + 2));
+//    Uart.SendDataByte(UART4,*(data + 3));
+//  }
   
   PacketCounter++;
 }

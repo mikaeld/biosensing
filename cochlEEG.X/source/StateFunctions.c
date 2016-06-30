@@ -145,7 +145,7 @@ BYTE constrain(BYTE x, BYTE a, BYTE b)
 int plusCounter = 0;
 char testChar;
 unsigned long commandTimer;
-sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
+//sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
 INT32 err;
 
 INT32 interpret24bitAsInt32(UINT8 byteArray[]) 
@@ -166,7 +166,7 @@ void eventSerial()
 {
 //  while(Uart.Var.oIsRxDataAvailable[UART4]);
 //  
-//  sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
+  sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
 //  INT32 err; 
 //  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
   
@@ -195,7 +195,7 @@ void getCommand(char token){
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
         activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_SLOW);
-        oDevStateFlag = 1;
+        oDevStateFlag = 1; break;
 //      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':
       changeChannelState_maintainRunningState(2,DEACTIVATE); break;
