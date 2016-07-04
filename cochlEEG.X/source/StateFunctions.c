@@ -192,13 +192,14 @@ void eventSerial()
 
 void getCommand(char token){
     switch (token){
+////START ACQUISITION       
+//      case '~':
+//        oDevStateFlag = 1; break;
 //TURN CHANNELS ON/OFF COMMANDS
       case '1':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_SLOW);
-        oDevStateFlag = 1; break;
-//      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
+        changeChannelState_maintainRunningState(1,DEACTIVATE); break;
       case '2':
-      changeChannelState_maintainRunningState(2,DEACTIVATE); break;
+        changeChannelState_maintainRunningState(2,DEACTIVATE); break;
       case '3':
         changeChannelState_maintainRunningState(3,DEACTIVATE); break;
       case '4':
@@ -472,16 +473,26 @@ void changeChannelState_maintainRunningState(BYTE chan, int start)
   int cur_outputType = outputType;
 
   //must stop running to change channel settings
-  stopRunning();
+//  stopRunning();
+//  if (start == 1) {
+//    activateChannel(chan);
+//  } else if (start == 0){
+//    deactivateChannel(chan);
+//  }
+//  //restart, if it was running before
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);
+//  }
+  stopADS();
+  Timer.DelayMs(10);
   if (start == 1) {
     activateChannel(chan);
-  } else if (start == 0){
+  } 
+  else if (start == 0)
+  {
     deactivateChannel(chan);
   }
-  //restart, if it was running before
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);
-  }
+  startADS();
 }
 
 void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode)

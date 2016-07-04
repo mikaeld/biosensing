@@ -38,6 +38,7 @@ BYTE header = HEADER;
 float AdsPacket[9] = {0};
 float PacketCounter = 1;
 sUartLineBuffer_t buffer = {0};
+extern INT8 oDevStateFlag;
 
 
 //==============================================================================
@@ -689,6 +690,7 @@ void startADS(void) // NEEDS ADS ADDRESS, OR BOTH?
 	Timer.DelayMs(1);   
   START(BOTH_ADS);  // start the data acquisition
 	Timer.DelayMs(1);
+  oDevStateFlag = 1;
   isRunning = TRUE;
 }
   
