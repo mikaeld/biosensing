@@ -35,6 +35,8 @@
 //==============================================================================
 BYTE footer = FOOTER;
 BYTE header = HEADER;
+float AdsPacket[9] = {0};
+float PacketCounter = 0;
 
 
 //==============================================================================
@@ -69,21 +71,9 @@ void startStreaming(){  // needs daisy functionality
 } 
 
 void sendChannelData(){
-  Uart.SendDataByte(UART4, header);
-  Uart.SendDataByte(UART4,sampleCounter); // 1 byte
+  
   ADS_writeChannelData();       // 24 bytes  
-  if(useAux){
-    //writeAuxData();             // 6 bytes of aux data
-  }
-  else{
-    BYTE zero = 0x00;
-    int i;
-    for(i=0; i<6; i++){
-      Uart.SendDataByte(UART4,zero);
-    }
-  }
-  Uart.SendDataByte(UART4, footer);
-  sampleCounter++;
+
 }
 
 void stopStreaming(){
@@ -693,7 +683,7 @@ void changeInputType(BYTE inputCode){
 // Start continuous data acquisition
 void startADS(void) // NEEDS ADS ADDRESS, OR BOTH?
 {
-  sampleCounter = 0;
+  PacketCounter = 0;
   firstDataPacket = TRUE;
   RDATAC(BOTH_ADS); // enter Read Data Continuous mode
 	Timer.DelayMs(1);   
@@ -719,11 +709,6 @@ void updateBoardData(){
   int ByteCounter = 0;
   int i;
 
-  if(daisyPresent && !firstDataPacket){
-    for(i=0; i<8; i++){  // shift and average the BYTE arrays
-      lastBoardChannelDataInt[i] = boardChannelDataInt[i]; // remember the last samples
-    }
-  }
   csLow(BOARD_ADS);       //  open SPI
   for(i=0; i<3; i++){ 
     inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
@@ -747,20 +732,7 @@ void updateBoardData(){
       boardChannelDataInt[i] &= 0x00FFFFFF;
     }
   }
-  if(daisyPresent && !firstDataPacket){
-    ByteCounter = 0;
-    for(i=0; i<8; i++){   // take the average of this and the last sample
-      meanBoardChannelDataInt[i] = (lastBoardChannelDataInt[i] + boardChannelDataInt[i])/2;
-    }
-    for(i=0; i<8; i++){  // place the average values in the meanRaw array
-      int b;
-      for(b=2; b>=0; b--){
-        meanBoardDataRaw[ByteCounter] = (meanBoardChannelDataInt[i] >> (b*8)) & 0xFF;
-        ByteCounter++;
-      }
-    }    
-  }
-    
+ 
   if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
 }
 
@@ -829,25 +801,44 @@ void stopADS()
 //write as binary each channel's data
 void ADS_writeChannelData() 
 { 
-  
-  if(daisyPresent){
-    if(sampleCounter % 2 != 0){ //CHECK SAMPLE ODD-EVEN AND SEND THE APPROPRIATE ADS DATA
-      int i;
-      for (i=0; i<24; i++){ 
-        Uart.SendDataByte(UART4,meanBoardDataRaw[i]); // send board data on odd samples
-      }
-    }else{
-      int i;
-      for (i=0; i<24; i++){
-        Uart.SendDataByte(UART4,meanDaisyDataRaw[i]); // send daisy data on even samples
-      }
-    }
-  }else{
-    int i;
-    for(i=0; i<24; i++){
-      Uart.SendDataByte(UART4,boardChannelDataRaw[i]);
-    }
+  AdsPacket[0] = PacketCounter;
+  sUartLineBuffer_t buffer = {0};
+  buffer.length = 36;
+
+  int i;
+  for(i=0; i<8; i++)
+  {
+    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5/((2^23)-1);  // ADS1299 Datasheet page 25
   }
+
+  int j;
+  for(j=0; j < 9 ; j++)
+  {
+    float f = AdsPacket[j];
+    memcpy((void *)&buffer.buffer[j*4], (void *)&f, 4);
+  }
+  
+  INT32 err = 0;
+  do
+  {
+    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+  }
+  while ( err < 0);  
+  
+  
+//  int j=0;
+//  for(j=0; j < 9 ; j++)
+//  {
+//    BYTE data[sizeof(float)];
+//    float f = AdsPacket[j];
+//    memcpy(data, &f, sizeof f);
+//    Uart.SendDataByte(UART4,*(data + 0));
+//    Uart.SendDataByte(UART4,*(data + 1));
+//    Uart.SendDataByte(UART4,*(data + 2));
+//    Uart.SendDataByte(UART4,*(data + 3));
+//  }
+  
+  PacketCounter++;
 }
 
 
