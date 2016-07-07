@@ -133,7 +133,7 @@ void InitSpi(void)
 //  {
 //    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
 //  }
-  err = Spi.Open(SPI4, oMasterFlags, 1e6);   // Open the SPI4 as a master at a bitrate of 4 MHz
+  err = Spi.Open(SPI4, oMasterFlags, 4e6);   // Open the SPI4 as a master at a bitrate of 4 MHz
   if (err < 0)                // Check for errors
   {
     LED_ERROR_ON;    // Turn on the LED_ERROR
@@ -248,6 +248,16 @@ void InitPorts(void)
                           | BIT_3     // SPI4 CS
                           );
   Port.B.SetPinsDigitalOut(BIT_14);   // SPI4 CLK
+  
+  /* DRDY Change Notice */
+  Port.C.SetPinsDigitalIn(BIT_14      // CN0 (DRDY))
+                          | BIT_13);  // CN1
+  
+  // Set for no internal pull up resistors on
+  mCNOpen((CN_ON|CN_FRZ_OFF),(CN0_ENABLE|CN1_ENABLE), 0);
+  
+  // Set CN interrupt for priority level 1,
+  ConfigIntCN(CHANGE_INT_ON | CHANGE_INT_PRI_1);
 }
 
 

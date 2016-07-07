@@ -153,7 +153,7 @@ void initialize_ads(){
     Timer.DelayMs(40);
     resetADS(BOARD_ADS); // reset the on-board ADS registers, and stop DataContinuousMode
     Timer.DelayMs(10);
-    WREG(CONFIG1,0xB6,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 250SPS
+    WREG(CONFIG1,0xB6,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 1000SPS
     Timer.DelayMs(40);
     resetADS(DAISY_ADS); // software reset daisy module if present
     Timer.DelayMs(10);
@@ -701,7 +701,7 @@ BOOL isDataAvailable(void)
 // CALLED WHEN DRDY PIN IS ASSERTED. NEW ADS DATA AVAILABLE!
 void updateChannelData(){ 
   updateBoardData();
-  if(daisyPresent) {updateDaisyData();}
+//  if(daisyPresent) {updateDaisyData();}
 }
 
 void updateBoardData(){
@@ -808,7 +808,8 @@ void ADS_writeChannelData()
   int i;
   for(i=0; i<8; i++)
   {
-    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5/((2^23)-1);  // ADS1299 Datasheet page 25
+//    AdsPacket[i+1] = (float)boardChannelDataInt[i];  // ADS1299 Datasheet page 25
+    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5f/8388607.0f;  // ADS1299 Datasheet page 25
   }
 
   int j;

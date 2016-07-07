@@ -31,6 +31,7 @@
 
 float temp = 0.0f;
 UINT32 test = 0x5D13; // 0x5D
+extern volatile BOOL oDataAvailableFlag;
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -120,10 +121,6 @@ void StateScheduler(void)
     {
       pState = &StateDevState;  // Transition to StateDevState
     }
-    else if (ADSCONFIG_2_READDATACONT)
-    {
-      pState = &StateReadDataCont;  // Transition to StateReadDataCont
-    }
     else
     {
       pState = &StateAdsConfig;  //Stay on current state
@@ -146,13 +143,13 @@ void StateScheduler(void)
   }
   
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateAdsStandBy
+  // Current state = StateDevState
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else if (pState == &StateDevState)
   {
-    if (DEVSTATE_2_ADSCONFIG)
+    if (DEVSTATE_2_DATAACQ)
     {
-      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+      pState = &StateDataAcq;  // Transition to StateAdsConfig
     }
     else
     {
@@ -161,17 +158,17 @@ void StateScheduler(void)
   }
   
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateReadDataCont
+  // Current state = StateDataAcq
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateReadDataCont)
+  else if (pState == &StateDataAcq)
   {
-    if (READDATACONT_2_ADSCONFIG)
+    if (DATAACQ_2_DEVSTATE)
     {
-      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+      pState = &StateDevState;  // Transition to StateAdsConfig
     }
     else
     {
-      pState = &StateReadDataCont;  // Stay on current state
+      pState = &StateDataAcq;  // Stay on current state
     }
   }
 
@@ -357,35 +354,34 @@ void StateAdsStandBy(void)
 //===============================================================
 void StateDevState(void)
 {
-  
-  LED_EEGACQ_ON;
-  if(is_running)
-  {
-    while(!(isDataAvailable())){}   // wait for DRDY pin...
-    updateChannelData(); // get the fresh ADS results
-    sendChannelData();  // serial fire hose
-  }
-
+  oDataAcqCompletedFlag = 0;
+  LED_DEBUG1_ON;
+  LED_EEGACQ_OFF;
   eventSerial();
   
-  if(serialTrigger)
-  {
-    if((millis() - triggerTimer) > 500)
-    {
-      LED_DEBUG1_ON;
-      serialTrigger = FALSE;
-    }
-  }
+//  if(serialTrigger)
+//  {
+//    if((millis() - triggerTimer) > 500)
+//    {
+//      LED_DEBUG1_ON;
+//      serialTrigger = FALSE;
+//    }
+//  }
 
 }
 
 //===============================================================
-// Name     : StateReadDataCont
+// Name     : StateDataAcq
 // Purpose  : 
 //===============================================================
-void StateReadDataCont(void)
+void StateDataAcq(void)
 {
+  LED_DEBUG1_OFF;
+  while(!oDataAvailableFlag){}   // wait for DRDY pin...
+  updateChannelData(); // get the fresh ADS results
+  sendChannelData();  // serial fire hose
 
-  oWakeUpFlag = 1;
+  oDataAvailableFlag = FALSE;
+  oDataAcqCompletedFlag = 1;
 }
 

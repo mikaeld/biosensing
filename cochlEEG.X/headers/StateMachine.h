@@ -34,7 +34,7 @@ void StateMcuInit     (void); // Initialization state for microcontroller
 void StateAdsInit     (void); // Initialization state for ADS1299
 void StateAdsConfig   (void); // Configuration state for ADS1299 (parameters
                               // set from EEPROM, Serial Port, Buttons, etc.)
-void StateReadDataCont(void); // Read Data Continuously mode, live data
+void StateDataAcq     (void); // Data Acq, live data
 void StateAdsStandBy  (void); // ADS1299 is in standby
 void StateDevState    (void); // Development state (for coding purposes)
 void StateError       (void); // Error state, goes back to StateMcuInit()
@@ -69,13 +69,12 @@ void StateScheduler   (void); // State Scheduler. Decides which state is next
 #define ADSCONFIG_2_ADSSTANDBY    oStandByFlag    // StateAdsConfig to StateAdsStandBy
 #define ADSSTANDBY_2_ADSCONFIG    oWakeUpFlag     // StateAdsStandBy to StateAdsConfig
 
-//%%%%%DEV STATE MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+//%%DEV STATE TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #define ADSCONFIG_2_DEVSTATE      oDevStateFlag   // StateAdsConfig to StateDevState
-#define DEVSTATE_2_ADSCONFIG      !oDevStateFlag  // StateDevState to StateAdsConfig
+#define DEVSTATE_2_DATAACQ         isRunning & oDataAvailableFlag // StateDevState to StateDataAcq
 
-//%%%%%DEV STATE MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define ADSCONFIG_2_READDATACONT  oRDataCFlag     // StateAdsConfig to StateReadDataCont
-#define READDATACONT_2_ADSCONFIG  oSDataCFlag     // StateReadDataCont to StateAdsConfig
+//%%DATA ACQ TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define DATAACQ_2_DEVSTATE  oDataAcqCompletedFlag     // StateDataAcq to StateDevState
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -84,13 +83,12 @@ void StateScheduler   (void); // State Scheduler. Decides which state is next
 //==============================================================================
 void (*pState)(void);       // State pointer, used to navigate between states
 
-volatile  INT8  oMcuInitFlag  // Flag indication MCU init routine is done
-               ,oAdsInitFlag  // Flag indicating ADS1299 init routine is done
-               ,oStandByFlag  // Flag indicating StandBy cmd was issued to ADS1299
-               ,oWakeUpFlag   // Flag indicating WakeUp cmd was issued to ADS1299 (resume from StandBy)
-               ,oDevStateFlag // Flag indicating state used for development was called
-               ,oRDataCFlag   // Flag indicating Read Data Continuously mode was called
-               ,oSDataCFlag   // Flag indicating Stop Read Data Continuously mode was called
+volatile  INT8  oMcuInitFlag          // Flag indication MCU init routine is done
+               ,oAdsInitFlag          // Flag indicating ADS1299 init routine is done
+               ,oStandByFlag          // Flag indicating StandBy cmd was issued to ADS1299
+               ,oWakeUpFlag           // Flag indicating WakeUp cmd was issued to ADS1299 (resume from StandBy)
+               ,oDevStateFlag         // Flag indicating state used for development was called
+               ,oDataAcqCompletedFlag // Flag indicating Data Acquisition sequence is done
                ;
 
 #endif	/* __STATE_MACHINE_H__ */

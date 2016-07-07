@@ -278,14 +278,23 @@ void getCommand(char token){
 
 // CHANNEL SETTING COMMANDS
       case 'x':  // expect 6 parameters
-        if(!is_running) {PrintlnToUart(UART4, "ready to accept new channel settings");}
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "ready to accept new channel settings");
+        }
         channelSettingsCounter = 0;
         getChannelSettings = TRUE; break;
       case 'X':  // latch channel settings
-        if(!is_running) {PrintlnToUart(UART4, "updating channel settings");}
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "updating channel settings");
+        }
         writeChannelSettings_maintainRunningState(currentChannelToSet); break;
       case 'd':  // reset all channel settings to default
-        if(!is_running) {PrintlnToUart(UART4, "updating channel settings to default");}
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "updating channel settings to default");
+        }
         setChannelsToDefaultSetting(); break;
       case 'D':  // report the default settings
         sendDefaultChannelSettings(); break;
@@ -353,27 +362,36 @@ void sendEOT(){
 
 void loadChannelSettings(char c){
 
-  if(channelSettingsCounter == 0){  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
+  if(channelSettingsCounter == 0)
+  {  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
     currentChannelToSet = getChannelNumber(c); // we just got the channel to load settings into (shift number down for array usage)
     channelSettingsCounter++;
-    if(!is_running) {
-      PrintToUart(UART4, "load setting ");
-      PrintToUart(UART4, "for channel ");
-      PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
+    if(!is_running) 
+    {
+//      PrintToUart(UART4, "load setting ");
+//      PrintToUart(UART4, "for channel ");
+//      PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
     }
     return;
   }
 //  setting BYTEs are in order: POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET
-  if(!is_running) {
-    PrintToUartDec(UART4, channelSettingsCounter-1);
-    PrintToUart(UART4, " with "); PrintToUartChar(UART4, c); PrintlnToUart(UART4, " ");
+  if(!is_running) 
+  {
+//    PrintToUartDec(UART4, channelSettingsCounter-1);
+//    PrintToUart(UART4, " with "); PrintToUartChar(UART4, c); PrintlnToUart(UART4, " ");
   }
   c -= '0';
-  if(channelSettingsCounter-1 == GAIN_SET){ c <<= 4; }
+  if(channelSettingsCounter-1 == GAIN_SET)
+  { 
+    c <<= 4; 
+  }
   channelSettings[currentChannelToSet][channelSettingsCounter-1] = c;
   channelSettingsCounter++;
-  if(channelSettingsCounter == 7){  // 1 currentChannelToSet, plus 6 channelSetting parameters
-    if(!is_running) PrintToUart(UART4, "done receiving settings for channel ");PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
+  if(channelSettingsCounter == 7)
+  {  // 1 currentChannelToSet, plus 6 channelSetting parameters
+    if(!is_running); //PrintToUart(UART4, "done receiving settings for channel ");
+//    PrintToUartDec(UART4, currentChannelToSet+1); 
+//    PrintlnToUart(UART4, " ");
     getChannelSettings = FALSE;
   }
 }

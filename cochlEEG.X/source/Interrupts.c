@@ -31,6 +31,30 @@
 // VARIABLES
 //==============================================================================
 volatile UINT32 timeFromStartMs = 0;
+volatile BOOL oDataAvailableFlag = FALSE;
+
+/*******************************************************************************
+ ***********************                               *************************
+ ********************       CHANGENOTICE INTERRUPTS       **********************
+ ***********************                               *************************
+ *******************************************************************************/
+void __ISR( _CHANGE_NOTICE_VECTOR, ipl1auto) ChangeNoticeInterruptHandler(void)
+{
+  /* Code required for determining which button was pressed */
+  /* Code for required processing */
+  
+  if(!Port.C.ReadBits(BIT_14))
+  {
+    oDataAvailableFlag = TRUE;
+    LED_EEGACQ_TOGGLE;
+  }
+  else
+  {
+    oDataAvailableFlag = FALSE;
+  }
+  mCNClearIntFlag(); // Clear CN interrupt flag
+  asm ("nop"); // Suggested by text to clear pipeline
+}
 
 /*******************************************************************************
  ***********************                               *************************
