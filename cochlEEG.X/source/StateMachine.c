@@ -29,12 +29,10 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
-float count = 0;
-//UINT32 test = 0x5D13; // 0x5D
-float testArray[9] = {0};
-UINT8 odd = 1;
-INT32 test2 = 0;
-
+float temp = 0.0f;
+UINT32 test = 0x5D13; // 0x5D
+extern volatile BOOL oDataAvailableFlag;
+extern struct sCochleegAds Ads;
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -124,10 +122,6 @@ void StateScheduler(void)
     {
       pState = &StateDevState;  // Transition to StateDevState
     }
-    else if (ADSCONFIG_2_READDATACONT)
-    {
-      pState = &StateReadDataCont;  // Transition to StateReadDataCont
-    }
     else
     {
       pState = &StateAdsConfig;  //Stay on current state
@@ -150,13 +144,13 @@ void StateScheduler(void)
   }
   
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateAdsStandBy
+  // Current state = StateDevState
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else if (pState == &StateDevState)
   {
-    if (DEVSTATE_2_ADSCONFIG)
+    if (DEVSTATE_2_DATAACQ)
     {
-      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+      pState = &StateDataAcq;  // Transition to StateAdsConfig
     }
     else
     {
@@ -165,17 +159,17 @@ void StateScheduler(void)
   }
   
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateReadDataCont
+  // Current state = StateDataAcq
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateReadDataCont)
+  else if (pState == &StateDataAcq)
   {
-    if (READDATACONT_2_ADSCONFIG)
+    if (DATAACQ_2_DEVSTATE)
     {
-      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+      pState = &StateDevState;  // Transition to StateAdsConfig
     }
     else
     {
-      pState = &StateReadDataCont;  // Stay on current state
+      pState = &StateDataAcq;  // Stay on current state
     }
   }
 
@@ -265,24 +259,26 @@ void StateAdsInit(void)
 {
   oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED 
   INT32 err = 0;
-//  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
-//  
-//  ADS_NO_RESET;
-//  Timer.DelayMs(1);
-//  SDATAC(ON_BOARD); // Stop data conversion in order to read and write registers 
-//  UINT32 adsIdValue = RREG(ID_REG, ON_BOARD);  // Read Device ID register (returns 0x3E)
-//  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
-//  {
-//    LED_ERROR_ON;
-//    err = PrintToUart(UART4,"ERROR READING ADS1299 ID\r\n"
-//            "\r\nCheck CochlEEG for possible hardware issue");
-//   }
-//  else 
-//  {
-//    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
-//      "*** ADS1299 initialization routine COMPLETED ***\r\n");
+  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***");
   
-  startFromScratch(); // Init ADS first time
+  Ads.Initialize();
+  
+  UINT8 adsIdValue = Ads.RegisterCmd.Rreg(ID);  // Read Device ID register (returns 0x3E)
+  err = PrintToUart(UART4,"\r\nADS1299 ID Value : ");
+  PrintToUartHex(UART4, adsIdValue);
+  err = PrintToUart(UART4,"\r\n");
+  if(adsIdValue != ADS_ID)  // Compare ID read vs 0x3E in order to identify hardware issues
+  {
+    LED_ERROR_ON;
+    err = PrintToUart(UART4,"ERROR READING ADS1299 ID\r\n"
+            "\r\nCheck CochlEEG for possible hardware issue");
+   }
+  else 
+  {
+    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED\r\n"
+      "*** ADS1299 initialization routine COMPLETED ***\r\n");
+  
+//  startFromScratch(); // Init ADS first time
     
   LED_EEGACQ_ON;
   Timer.DelayMs(200);
@@ -291,27 +287,8 @@ void StateAdsInit(void)
   LED_EEGACQ_ON;
   Timer.DelayMs(200);
   LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
-  daisyPresent = FALSE;
-  
-//  SDATAC(BOARD_ADS);
-//  WREG(CONFIG3, 0xE0, BOARD_ADS);
-//  WREG(CONFIG1, 0x96, BOARD_ADS);
-//  
-//  WREG(CONFIG2, 0xD0, BOARD_ADS);
-//  
-//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
-  
-  
-  
   oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
-//  }
+  }
 }
 
 //===============================================================
@@ -320,43 +297,9 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
+
   
-//  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
-//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  
-//  startStreaming();
-//  SpiRxBuffer[0] = 0x33;
-//  SpiRxBuffer[1] = 0x22;
-//  SpiRxBuffer[2] = 0x11;
-//  INT8 tt = -128;
-//
-//  channelDataBuffer = (SpiRxBuffer[0] << 16);
-//  channelDataBuffer = channelDataBuffer | (SpiRxBuffer[1] << 8);
-  
-  
-//  WREG(CONFIG2, 0xC0, BOARD_ADS);
-//  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  
-//  START(BOARD_ADS);
-//  RDATAC(BOARD_ADS);
-    
-  eventSerial();
-  
-  
+//  oDevStateFlag = 1;
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
 }
@@ -377,64 +320,33 @@ void StateAdsStandBy(void)
 //===============================================================
 void StateDevState(void)
 {
-  LED_EEGACQ_ON;
-    
-  while(!(isDataAvailable())){}   // wait for DRDY pin...
+  oDataAcqCompletedFlag = 0;
+  LED_DEBUG1_ON;
+  LED_EEGACQ_OFF;
+  eventSerial();
   
-  updateChannelData(); // get the fresh ADS results
-  sendChannelData();  // serial fire hose
-  
-//  testArray[0] = count;
-//  if(odd)
+//  if(serialTrigger)
 //  {
-//    testArray[1] = 1.0f;
-//    testArray[2] = 2.0f;
-//    testArray[3] = 3.0f;
-//    testArray[4] = 4.0f;
-//    testArray[5] = 5.0f;
-//    testArray[6] = 6.0f;
-//    testArray[7] = 7.0f;
-//    testArray[8] = 8.0f;
-//    odd = 0;
+//    if((millis() - triggerTimer) > 500)
+//    {
+//      LED_DEBUG1_ON;
+//      serialTrigger = FALSE;
+//    }
 //  }
-//  else
-//  {
-//    testArray[1] = 2.0f;
-//    testArray[2] = 3.0f;
-//    testArray[3] = 4.0f;
-//    testArray[4] = 5.0f;
-//    testArray[5] = 6.0f;
-//    testArray[6] = 7.0f;
-//    testArray[7] = 8.0f;
-//    testArray[8] = 9.0f;
-//    odd = 1;
-//  }
-//  
-//  sUartLineBuffer_t buffer = {0};
-//  buffer.length = 36;
-//  int i=0;
-//  for(i=0; i < 9 ; i++)
-//  {
-//    float f = testArray[i];
-//    memcpy((void *)&buffer.buffer[i*4], (void *)&f, 4);
-//  }
-//  
-//  INT32 err = 0;
-//  do
-//  {
-//    err = Uart.PutTxFifoBuffer(UART4, &buffer);
-//  }
-//  while ( err < 0);
-//  count++;  
+
 }
 
 //===============================================================
-// Name     : StateReadDataCont
+// Name     : StateDataAcq
 // Purpose  : 
 //===============================================================
-void StateReadDataCont(void)
+void StateDataAcq(void)
 {
-
-  oWakeUpFlag = 1;
+  LED_DEBUG1_OFF;
+  while(!oDataAvailableFlag){}   // wait for DRDY pin...
+  updateBoardData(); // get the fresh ADS results
+  sendChannelData();  // serial fire hose
+  oDataAvailableFlag = FALSE;
+  oDataAcqCompletedFlag = 1;
 }
 

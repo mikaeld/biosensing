@@ -31,6 +31,7 @@
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
+BYTE xfer(BYTE);        // SPI Transfer function 
 UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data);
 INT32 PrintToUart(UartModule_t uartModuleId, char *string);
 BYTE constrain(BYTE x, BYTE a, BYTE b);
@@ -41,7 +42,6 @@ INT32 printHex(UartModule_t uartModuleId, BYTE _data);
 INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
 INT32 PrintToUartChar(UartModule_t uartModuleId, char c);
 BYTE constrain(BYTE x, BYTE a, BYTE b);
-INT32 interpret24bitAsInt32(UINT8 byteArray[]);
 void getCommand(char token);
 void sendEOT();
 void loadChannelSettings(char c);

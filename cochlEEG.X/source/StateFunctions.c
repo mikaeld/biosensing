@@ -32,7 +32,6 @@ extern int channelSettingsCounter; // used to retrieve channel settings from ser
 extern int leadOffSettingsCounter;
 extern BOOL getLeadOffSettings;
 extern int outputType;  // default to 8 channels
-extern INT8 oDevStateFlag;
 
 extern BOOL serialTrigger;
 extern BOOL triggerTimer;
@@ -41,6 +40,14 @@ extern volatile UINT32 timeFromStartMs;
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
+
+BYTE xfer(BYTE _data) 
+{
+    BYTE inByte;
+    inByte = SpiTransfer(SPI4, _data);
+    return inByte;
+}
+
 
 /**************************************************************
  * Function name  : SpiTransfer
@@ -145,30 +152,16 @@ BYTE constrain(BYTE x, BYTE a, BYTE b)
 int plusCounter = 0;
 char testChar;
 unsigned long commandTimer;
-//sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
+sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
 INT32 err;
-
-INT32 interpret24bitAsInt32(UINT8 byteArray[]) 
-{     
-  INT32 newInt = (((0xFF & byteArray[0]) << 16) | ((0xFF & byteArray[1]) << 8) | (0xFF & byteArray[2]));  
-  if ((newInt & 0x00800000) > 0) 
-  {  
-    newInt = (INT32)((UINT32)newInt | (UINT32)0xFF000000);
-  } 
-  else 
-  {  
-    newInt = (INT32)((UINT32)newInt & (UINT32)0x00FFFFFF); 
-  }
-return newInt;
-}  
 
 void eventSerial()
 {
-//  while(Uart.Var.oIsRxDataAvailable[UART4]);
-//  
+  while(Uart.Var.oIsRxDataAvailable[UART4]);
+  
   sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
-//  INT32 err; 
-//  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
+  INT32 err; 
+  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
   
   while(Uart.Var.oIsRxDataAvailable[UART4])
   { 
@@ -192,88 +185,85 @@ void eventSerial()
 
 void getCommand(char token){
     switch (token){
-////START ACQUISITION       
-//      case '~':
-//        oDevStateFlag = 1; break;
 //TURN CHANNELS ON/OFF COMMANDS
-      case '1':
-        changeChannelState_maintainRunningState(1,DEACTIVATE); break;
-      case '2':
-        changeChannelState_maintainRunningState(2,DEACTIVATE); break;
-      case '3':
-        changeChannelState_maintainRunningState(3,DEACTIVATE); break;
-      case '4':
-        changeChannelState_maintainRunningState(4,DEACTIVATE); break;
-      case '5':
-        changeChannelState_maintainRunningState(5,DEACTIVATE); break;
-      case '6':
-        changeChannelState_maintainRunningState(6,DEACTIVATE); break;
-      case '7':
-        changeChannelState_maintainRunningState(7,DEACTIVATE); break;
-      case '8':
-        changeChannelState_maintainRunningState(8,DEACTIVATE); break;
-      case '!':
-        changeChannelState_maintainRunningState(1,ACTIVATE); break;
-      case '@':
-        changeChannelState_maintainRunningState(2,ACTIVATE); break;
-      case '#':
-        changeChannelState_maintainRunningState(3,ACTIVATE); break;
-      case '$':
-        changeChannelState_maintainRunningState(4,ACTIVATE); break;
-      case '%':
-        changeChannelState_maintainRunningState(5,ACTIVATE); break;
-      case '^':
-        changeChannelState_maintainRunningState(6,ACTIVATE); break;
-      case '&':
-        changeChannelState_maintainRunningState(7,ACTIVATE); break;
-      case '*':
-        changeChannelState_maintainRunningState(8,ACTIVATE); break;
-      case 'q':
-        changeChannelState_maintainRunningState(9,DEACTIVATE); break;
-      case 'w':
-        changeChannelState_maintainRunningState(10,DEACTIVATE); break;
-      case 'e':
-        changeChannelState_maintainRunningState(11,DEACTIVATE); break;
-      case 'r':
-        changeChannelState_maintainRunningState(12,DEACTIVATE); break;
-      case 't':
-        changeChannelState_maintainRunningState(13,DEACTIVATE); break;
-      case 'y':
-        changeChannelState_maintainRunningState(14,DEACTIVATE); break;
-      case 'u':
-        changeChannelState_maintainRunningState(15,DEACTIVATE); break;
-      case 'i':
-        changeChannelState_maintainRunningState(16,DEACTIVATE); break;
-      case 'Q':
-        changeChannelState_maintainRunningState(9,ACTIVATE); break;
-      case 'W':
-        changeChannelState_maintainRunningState(10,ACTIVATE); break;
-      case 'E':
-        changeChannelState_maintainRunningState(11,ACTIVATE); break;
-      case 'R':
-        changeChannelState_maintainRunningState(12,ACTIVATE); break;
-      case 'T':
-        changeChannelState_maintainRunningState(13,ACTIVATE); break;
-      case 'Y':
-        changeChannelState_maintainRunningState(14,ACTIVATE); break;
-      case 'U':
-        changeChannelState_maintainRunningState(15,ACTIVATE); break;
-      case 'I':
-        changeChannelState_maintainRunningState(16,ACTIVATE); break;
+//      case '1':
+//      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
+//      case '2':
+//      changeChannelState_maintainRunningState(2,DEACTIVATE); break;
+//      case '3':
+//        changeChannelState_maintainRunningState(3,DEACTIVATE); break;
+//      case '4':
+//        changeChannelState_maintainRunningState(4,DEACTIVATE); break;
+//      case '5':
+//        changeChannelState_maintainRunningState(5,DEACTIVATE); break;
+//      case '6':
+//        changeChannelState_maintainRunningState(6,DEACTIVATE); break;
+//      case '7':
+//        changeChannelState_maintainRunningState(7,DEACTIVATE); break;
+//      case '8':
+//        changeChannelState_maintainRunningState(8,DEACTIVATE); break;
+//      case '!':
+//        changeChannelState_maintainRunningState(1,ACTIVATE); break;
+//      case '@':
+//        changeChannelState_maintainRunningState(2,ACTIVATE); break;
+//      case '#':
+//        changeChannelState_maintainRunningState(3,ACTIVATE); break;
+//      case '$':
+//        changeChannelState_maintainRunningState(4,ACTIVATE); break;
+//      case '%':
+//        changeChannelState_maintainRunningState(5,ACTIVATE); break;
+//      case '^':
+//        changeChannelState_maintainRunningState(6,ACTIVATE); break;
+//      case '&':
+//        changeChannelState_maintainRunningState(7,ACTIVATE); break;
+//      case '*':
+//        changeChannelState_maintainRunningState(8,ACTIVATE); break;
+//      case 'q':
+//        changeChannelState_maintainRunningState(9,DEACTIVATE); break;
+//      case 'w':
+//        changeChannelState_maintainRunningState(10,DEACTIVATE); break;
+//      case 'e':
+//        changeChannelState_maintainRunningState(11,DEACTIVATE); break;
+//      case 'r':
+//        changeChannelState_maintainRunningState(12,DEACTIVATE); break;
+//      case 't':
+//        changeChannelState_maintainRunningState(13,DEACTIVATE); break;
+//      case 'y':
+//        changeChannelState_maintainRunningState(14,DEACTIVATE); break;
+//      case 'u':
+//        changeChannelState_maintainRunningState(15,DEACTIVATE); break;
+//      case 'i':
+//        changeChannelState_maintainRunningState(16,DEACTIVATE); break;
+//      case 'Q':
+//        changeChannelState_maintainRunningState(9,ACTIVATE); break;
+//      case 'W':
+//        changeChannelState_maintainRunningState(10,ACTIVATE); break;
+//      case 'E':
+//        changeChannelState_maintainRunningState(11,ACTIVATE); break;
+//      case 'R':
+//        changeChannelState_maintainRunningState(12,ACTIVATE); break;
+//      case 'T':
+//        changeChannelState_maintainRunningState(13,ACTIVATE); break;
+//      case 'Y':
+//        changeChannelState_maintainRunningState(14,ACTIVATE); break;
+//      case 'U':
+//        changeChannelState_maintainRunningState(15,ACTIVATE); break;
+//      case 'I':
+//        changeChannelState_maintainRunningState(16,ACTIVATE); break;
 
 // TEST SIGNAL CONTROL COMMANDS
-      case '0':
-        activateAllChannelsToTestCondition(ADSINPUT_SHORTED,ADSTESTSIG_NOCHANGE,ADSTESTSIG_NOCHANGE); break;
-      case '-':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_SLOW); break;
-      case '=':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_FAST); break;
-      case 'p':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_DCSIG); break;
-      case '[':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_SLOW); break;
-      case ']':
-        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_FAST); break;
+//      case '0':
+//        activateAllChannelsToTestCondition(ADSINPUT_SHORTED,ADSTESTSIG_NOCHANGE,ADSTESTSIG_NOCHANGE); break;
+//      case '-':
+//        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_SLOW); break;
+//      case '=':
+//        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_1X,ADSTESTSIG_PULSE_FAST); break;
+//      case 'p':
+//        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_DCSIG); break;
+//      case '[':
+//        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_SLOW); break;
+//      case ']':
+//        activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_FAST); break;
 
 // SD CARD COMMANDS
     //    5min     15min    30min    1hr      2hr      4hr      12hr     24hr    512blocks
@@ -296,17 +286,26 @@ void getCommand(char token){
 
 // CHANNEL SETTING COMMANDS
       case 'x':  // expect 6 parameters
-        if(!is_running) {PrintlnToUart(UART4, "ready to accept new channel settings");}
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "ready to accept new channel settings");
+        }
         channelSettingsCounter = 0;
         getChannelSettings = TRUE; break;
       case 'X':  // latch channel settings
-        if(!is_running) {PrintlnToUart(UART4, "updating channel settings");}
-        writeChannelSettings_maintainRunningState(currentChannelToSet); break;
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "updating channel settings");
+        }
+//        writeChannelSettings_maintainRunningState(currentChannelToSet); break;
       case 'd':  // reset all channel settings to default
-        if(!is_running) {PrintlnToUart(UART4, "updating channel settings to default");}
-        setChannelsToDefaultSetting(); break;
+        if(!is_running) 
+        {
+//          PrintlnToUart(UART4, "updating channel settings to default");
+        }
+//        setChannelsToDefaultSetting(); break;
       case 'D':  // report the default settings
-        sendDefaultChannelSettings(); break;
+//        sendDefaultChannelSettings(); break;
 
 // LEAD OFF IMPEDANCE DETECTION COMMANDS
       case 'z':  // expect 2 parameters
@@ -316,29 +315,27 @@ void getCommand(char token){
         break;
       case 'Z':  // latch impedance parameters
         if(!is_running) {PrintlnToUart(UART4, "updating impedance detect settings");}
-        changeChannelLeadOffDetect_maintainRunningState(currentChannelToSet);
+//        changeChannelLeadOffDetect_maintainRunningState(currentChannelToSet);
         break;
 
 // DAISY MODULE COMMANDS
-      case 'c':  // use 8 channel mode
-        if(daisyPresent){ removeDaisy(); }
-        outputType = OUTPUT_8_CHAN;
-        break;
-      case 'C':  // use 16 channel mode
-        if(daisyPresent == FALSE){attachDaisy();}
-        if(daisyPresent){
-          PrintToUart(UART4, "16"); outputType = OUTPUT_16_CHAN;
-        }else{
-          PrintToUart(UART4, "8"); outputType = OUTPUT_8_CHAN;
-        }
-        sendEOT();
-        break;
+//      case 'c':  // use 8 channel mode
+//        if(daisyPresent){ removeDaisy(); }
+//        outputType = OUTPUT_8_CHAN;
+//        break;
+//      case 'C':  // use 16 channel mode
+//        if(daisyPresent == FALSE){attachDaisy();}
+//        if(daisyPresent){
+//          PrintToUart(UART4, "16"); outputType = OUTPUT_16_CHAN;
+//        }else{
+//          PrintToUart(UART4, "8"); outputType = OUTPUT_8_CHAN;
+//        }
+//        sendEOT();
+//        break;
 
 // STREAM DATA AND FILTER COMMANDS
       case 'b':  // stream data
-//        if(SDfileOpen) stampSD(ACTIVATE);                     // time stamp the start time
-//        if(useAccel){enable_accel(RATE_25HZ);}      // fire up the accelerometer if you want it
-        startRunning(outputType);       // turn on the fire hose
+        startADS();       // turn on the fire hose
         break;
      case 's':  // stop streaming data
 //        if(SDfileOpen) stampSD(DEACTIVATE);       // time stamp the stop time
@@ -354,11 +351,11 @@ void getCommand(char token){
 
 //  INITIALIZE AND VERIFY
       case 'v':
-         startFromScratch();
+//         startFromScratch();
          break;
 //  QUERY THE ADS AND ACCEL REGITSTERS
      case '?':
-        printRegisters();
+//        printRegisters();
         break;
      default:
        break;
@@ -369,56 +366,65 @@ void sendEOT(){
   PrintToUart(UART4, "$$$");
 }
 
-void loadChannelSettings(char c){
+//void loadChannelSettings(char c){
+//
+//  if(channelSettingsCounter == 0)
+//  {  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
+//    currentChannelToSet = getChannelNumber(c); // we just got the channel to load settings into (shift number down for array usage)
+//    channelSettingsCounter++;
+//    if(!is_running) 
+//    {
+////      PrintToUart(UART4, "load setting ");
+////      PrintToUart(UART4, "for channel ");
+////      PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
+//    }
+//    return;
+//  }
+////  setting BYTEs are in order: POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET
+//  if(!is_running) 
+//  {
+////    PrintToUartDec(UART4, channelSettingsCounter-1);
+////    PrintToUart(UART4, " with "); PrintToUartChar(UART4, c); PrintlnToUart(UART4, " ");
+//  }
+//  c -= '0';
+//  if(channelSettingsCounter-1 == GAIN_SET)
+//  { 
+//    c <<= 4; 
+//  }
+//  channelSettings[currentChannelToSet][channelSettingsCounter-1] = c;
+//  channelSettingsCounter++;
+//  if(channelSettingsCounter == 7)
+//  {  // 1 currentChannelToSet, plus 6 channelSetting parameters
+//    if(!is_running); //PrintToUart(UART4, "done receiving settings for channel ");
+////    PrintToUartDec(UART4, currentChannelToSet+1); 
+////    PrintlnToUart(UART4, " ");
+//    getChannelSettings = FALSE;
+//  }
+//}
 
-  if(channelSettingsCounter == 0){  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
-    currentChannelToSet = getChannelNumber(c); // we just got the channel to load settings into (shift number down for array usage)
-    channelSettingsCounter++;
-    if(!is_running) {
-      PrintToUart(UART4, "load setting ");
-      PrintToUart(UART4, "for channel ");
-      PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
-    }
-    return;
-  }
-//  setting BYTEs are in order: POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET
-  if(!is_running) {
-    PrintToUartDec(UART4, channelSettingsCounter-1);
-    PrintToUart(UART4, " with "); PrintToUartChar(UART4, c); PrintlnToUart(UART4, " ");
-  }
-  c -= '0';
-  if(channelSettingsCounter-1 == GAIN_SET){ c <<= 4; }
-  channelSettings[currentChannelToSet][channelSettingsCounter-1] = c;
-  channelSettingsCounter++;
-  if(channelSettingsCounter == 7){  // 1 currentChannelToSet, plus 6 channelSetting parameters
-    if(!is_running) PrintToUart(UART4, "done receiving settings for channel ");PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
-    getChannelSettings = FALSE;
-  }
-}
-
-void writeChannelSettings_maintainRunningState(char chan){
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
-  stopRunning();                   //must stop running to change channel settings
-
-  writeChannelSettings(chan+1);    // change the channel settings on ADS
-
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);  //restart, if it was running before
-  }
-}
-
-void setChannelsToDefaultSetting(){
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
-  stopRunning();  //must stop running to change channel settings
-
-  setChannelsToDefault();   // default channel settings
-
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);  //restart, if it was running before
-  }
-}
+//void writeChannelSettings_maintainRunningState(char chan){
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//  stopRunning();                   //must stop running to change channel settings
+//
+//  writeChannelSettings(chan+1);    // change the channel settings on ADS
+//
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);  //restart, if it was running before
+//  }
+//}
+//
+//void setChannelsToDefaultSetting(){
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//  stopRunning();  //must stop running to change channel settings
+//
+//  setChannelsToDefault();   // default channel settings
+//
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);  //restart, if it was running before
+//  }
+//}
 
 void loadLeadOffSettings(char c){
    if(leadOffSettingsCounter == 0){  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
@@ -467,12 +473,12 @@ char getChannelNumber(char n){
   return n;
 }
 
-void changeChannelState_maintainRunningState(BYTE chan, int start)
-{
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
-
-  //must stop running to change channel settings
+//void changeChannelState_maintainRunningState(BYTE chan, int start)
+//{
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//
+//  //must stop running to change channel settings
 //  stopRunning();
 //  if (start == 1) {
 //    activateChannel(chan);
@@ -483,98 +489,98 @@ void changeChannelState_maintainRunningState(BYTE chan, int start)
 //  if (is_running_when_called == TRUE) {
 //    startRunning(cur_outputType);
 //  }
-  stopADS();
-  Timer.DelayMs(10);
-  if (start == 1) {
-    activateChannel(chan);
-  } 
-  else if (start == 0)
-  {
-    deactivateChannel(chan);
-  }
-  startADS();
-}
+//}
+//
+//void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode)
+//{
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//  //must stop running to change channel settings
+//  stopRunning(); Timer.DelayMs(10);
+//
+//  //set the test signal to the desired state
+//  configureInternalTestSignal(amplitudeCode,freqCode);
+//  //change input type settings for all channels
+//  changeInputType(testInputCode);
+//
+//  //restart, if it was running before
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);
+//  }
+//}
+//
+//int changeChannelLeadOffDetect_maintainRunningState(char chan)
+//{
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//
+//  //must stop running to change channel settings
+//  stopRunning();
+//
+//  changeChannelLeadOffDetect(chan);
+//
+//  //restart, if it was running before
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);
+//  }
+//}
 
-void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode)
-{
-  //must stop running to change channel settings
-  stopADS();  
-  Timer.DelayMs(10);
+//void sendDefaultChannelSettings(){
+//  BOOL is_running_when_called = is_running;
+//  int cur_outputType = outputType;
+//
+//  reportDefaultChannelSettings();
+//  sendEOT();
+//  Timer.DelayMs(10);
+//
+//  //restart, if it was running before
+//  if (is_running_when_called == TRUE) {
+//    startRunning(cur_outputType);
+//  }
+//}
 
-  //set the test signal to the desired state
-  configureInternalTestSignal(amplitudeCode,freqCode);
-  //change input type settings for all channels
-  changeInputType(testInputCode);
+//BOOL stopRunning(void) {
+//  if(is_running){
+//    stopStreaming();  // stop the data acquisition, turn off accelerometer
+//    is_running = FALSE;
+//    }
+//    return is_running;
+//  }
 
-  //restart, if it was running before
-  startADS();
-}
+//BOOL startRunning(int OUT_TYPE) {
+//  if(!is_running){
+//    outputType = OUT_TYPE;
+//    startStreaming();  // start the data acquisition, turn on accelerometer
+//    is_running = TRUE;
+//  }
+//    return is_running;
+//}
 
-int changeChannelLeadOffDetect_maintainRunningState(char chan)
-{
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
-
-  //must stop running to change channel settings
-  stopRunning();
-
-  changeChannelLeadOffDetect(chan);
-
-  //restart, if it was running before
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);
-  }
-}
-
-void sendDefaultChannelSettings(){
-  BOOL is_running_when_called = is_running;
-  int cur_outputType = outputType;
-
-  reportDefaultChannelSettings();
-  sendEOT();
-  Timer.DelayMs(10);
-
-  //restart, if it was running before
-  if (is_running_when_called == TRUE) {
-    startRunning(cur_outputType);
-  }
-}
-
-BOOL stopRunning(void) {
-  if(is_running){
-    stopStreaming();  // stop the data acquisition, turn off accelerometer
-    is_running = FALSE;
-    }
-    return is_running;
-  }
-
-BOOL startRunning(int OUT_TYPE) {
-  if(!is_running){
-    outputType = OUT_TYPE;
-    startStreaming();  // start the data acquisition, turn on accelerometer
-    is_running = TRUE;
-  }
-    return is_running;
-}
-
-void printRegisters(){
-
-  if(!is_running){
-    // print the ADS and LIS3DH registers
-    printAllRegisters();
-    sendEOT();
-    Timer.DelayMs(20);
-  }
-
-}
-
-void startFromScratch(){
-  if(!is_running){
-    initialize_ads();
-    Timer.DelayMs(500);
-    configureLeadOffDetection(LOFF_MAG_6NA, LOFF_FREQ_31p2HZ);
-  }
-}
+//void printRegisters(){
+//
+//  if(!is_running){
+//    // print the ADS and LIS3DH registers
+//    printAllRegisters();
+//    sendEOT();
+//    Timer.DelayMs(20);
+//  }
+//
+//}
+//
+//void startFromScratch(){
+//  if(!is_running){
+//    initialize_ads();
+//    Timer.DelayMs(500);
+//    PrintlnToUart(UART4, "OpenBCI V3 16 channel");
+//    configureLeadOffDetection(LOFF_MAG_6NA, LOFF_FREQ_31p2HZ);
+//    PrintToUart(UART4, "On Board ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_BOARD)); PrintlnToUart(UART4, " ");
+//    if(daisyPresent){  // library will set this in initialize() if daisy present and functional
+//      PrintToUart(UART4, "On Daisy ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_DAISY)); PrintlnToUart(UART4, " ");
+//    }
+////    PrintToUart(UART4, "LIS3DH Device ID: 0x"); PrintlnToUart(UART4, LIS3DH_getDeviceID(),HEX);
+//    sendEOT();
+//  }
+//}
 
 
 UINT32 millis(){

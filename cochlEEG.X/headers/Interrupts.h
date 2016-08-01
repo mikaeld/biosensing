@@ -80,6 +80,15 @@
  * +----------+-------------+-------------------+
  * 
  */
+//===============================================
+// Timer interrupts priorities and subpriorities
+//===============================================
+#define CHANGENOTICE_INTERRUPT_PRIORITY       7   // Used in ChinookLib function
+#define CN_INTERRUPT_PRIORITY           ipl7auto  // Used in ISR
+
+
+#define CHANGENOTICE_INTERRUPT_SUBPRIORITY    7         // Highest subpriority
+//===============================================
 
 //===============================================
 // Timer interrupts priorities and subpriorities
@@ -88,7 +97,7 @@
 #define T1_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
 #define TIMER2_INTERRUPT_PRIORITY       2         // Used in ChinookLib function
 #define T2_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
-#define TIMER3_INTERRUPT_PRIORITY       7         // Used in ChinookLib function
+#define TIMER3_INTERRUPT_PRIORITY       3         // Used in ChinookLib function
 #define T3_INTERRUPT_PRIORITY           ipl7auto  // Used in ISR
 #define TIMER4_INTERRUPT_PRIORITY       1         // Used in ChinookLib function
 #define T4_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
