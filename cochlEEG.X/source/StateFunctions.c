@@ -168,18 +168,18 @@ void eventSerial()
     err = Uart.GetRxFifoBuffer(UART4, &buffer, FALSE);
     char inChar = (char)buffer.buffer[0];
     
-    if(getChannelSettings)
-    { 
-      loadChannelSettings(inChar); // 'x' expect channel setting parameters  
-    }
-    else if(getLeadOffSettings)
-    {  
-      loadLeadOffSettings(inChar); // 'z' expect lead-off setting parameters
-    }
-    else
-    {
+//    if(getChannelSettings)
+//    { 
+//      loadChannelSettings(inChar); // 'x' expect channel setting parameters  
+//    }
+//    else if(getLeadOffSettings)
+//    {  
+//      loadLeadOffSettings(inChar); // 'z' expect lead-off setting parameters
+//    }
+//    else
+//    {
       getCommand(inChar);    // decode the command
-    }  
+//    }  
   }
 }
 

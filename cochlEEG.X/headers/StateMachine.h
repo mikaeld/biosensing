@@ -71,7 +71,7 @@ void StateScheduler   (void); // State Scheduler. Decides which state is next
 
 //%%DEV STATE TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #define ADSCONFIG_2_DEVSTATE      oDevStateFlag   // StateAdsConfig to StateDevState
-#define DEVSTATE_2_DATAACQ         isRunning & oDataAvailableFlag // StateDevState to StateDataAcq
+#define DEVSTATE_2_DATAACQ         /*isRunning &*/ oDataAvailableFlag // StateDevState to StateDataAcq
 
 //%%DATA ACQ TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #define DATAACQ_2_DEVSTATE  oDataAcqCompletedFlag     // StateDataAcq to StateDevState

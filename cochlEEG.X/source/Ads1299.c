@@ -28,6 +28,7 @@
 // Global Variable Declaration for ADS1299
 //==============================================================================
 UINT32 PacketCounter = 0;
+float AdsPacket[9] = {0};
 
 
 Config1_t config1Register = 
@@ -366,6 +367,62 @@ void stopADS()
   isRunning = FALSE;
 }
 
+//write as binary each channel's data
+void ADS_writeChannelData() 
+{ 
+  AdsPacket[0] = PacketCounter;
+  sUartLineBuffer_t buffer = {0};
+  buffer.length = 36;
+
+  int i;
+  for(i=0; i<8; i++)
+  {
+//    AdsPacket[i+1] = (float)boardChannelDataInt[i];  // ADS1299 Datasheet page 25
+    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5f/8388607.0f;  // ADS1299 Datasheet page 25
+  }
+
+  int j;
+  for(j=0; j < 9 ; j++)
+  {
+    float f = AdsPacket[j];
+    memcpy((void *)&buffer.buffer[j*4], (void *)&f, 4);
+  }
+  
+  INT32 err = 0;
+  do
+  {
+    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+  }
+  while ( err < 0);  
+  
+  
+//  int j=0;
+//  for(j=0; j < 9 ; j++)
+//  {
+//    BYTE data[sizeof(float)];
+//    float f = AdsPacket[j];
+//    memcpy(data, &f, sizeof f);
+//    Uart.SendDataByte(UART4,*(data + 0));
+//    Uart.SendDataByte(UART4,*(data + 1));
+//    Uart.SendDataByte(UART4,*(data + 2));
+//    Uart.SendDataByte(UART4,*(data + 3));
+//  }
+  
+  PacketCounter++;
+}
+
+
+//BYTE ADS_getDeviceID() {      // simple hello world com check
+//  BYTE data = RREG(ID_REG,targetSS);
+//  if(verbosity)
+//  {            // verbosity otuput
+//    PrintToUart(UART4,"On Board ADS ID ");
+//    printHex(UART4, data);
+//    PrintlnToUart(UART4, " ");
+//  }
+//  return data;
+//}
+
 ///******************************************************************************/
 ///***********************END OF ADS COCHLEEG SPECIFIC FUNCTIONS*****************/
 ///******************************************************************************/
@@ -663,61 +720,7 @@ void stopADS()
 //}
 //
 //
-////write as binary each channel's data
-//void ADS_writeChannelData() 
-//{ 
-//  AdsPacket[0] = PacketCounter;
-//  sUartLineBuffer_t buffer = {0};
-//  buffer.length = 36;
-//
-//  int i;
-//  for(i=0; i<8; i++)
-//  {
-////    AdsPacket[i+1] = (float)boardChannelDataInt[i];  // ADS1299 Datasheet page 25
-//    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5f/8388607.0f;  // ADS1299 Datasheet page 25
-//  }
-//
-//  int j;
-//  for(j=0; j < 9 ; j++)
-//  {
-//    float f = AdsPacket[j];
-//    memcpy((void *)&buffer.buffer[j*4], (void *)&f, 4);
-//  }
-//  
-//  INT32 err = 0;
-//  do
-//  {
-//    err = Uart.PutTxFifoBuffer(UART4, &buffer);
-//  }
-//  while ( err < 0);  
-//  
-//  
-////  int j=0;
-////  for(j=0; j < 9 ; j++)
-////  {
-////    BYTE data[sizeof(float)];
-////    float f = AdsPacket[j];
-////    memcpy(data, &f, sizeof f);
-////    Uart.SendDataByte(UART4,*(data + 0));
-////    Uart.SendDataByte(UART4,*(data + 1));
-////    Uart.SendDataByte(UART4,*(data + 2));
-////    Uart.SendDataByte(UART4,*(data + 3));
-////  }
-//  
-//  PacketCounter++;
-//}
-//
-//
-//BYTE ADS_getDeviceID() {      // simple hello world com check
-//  BYTE data = RREG(ID_REG,targetSS);
-//  if(verbosity)
-//  {            // verbosity otuput
-//    PrintToUart(UART4,"On Board ADS ID ");
-//    printHex(UART4, data);
-//    PrintlnToUart(UART4, " ");
-//  }
-//  return data;
-//}
+
 //  
 ////System Commands
 //

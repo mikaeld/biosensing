@@ -33,6 +33,16 @@ float temp = 0.0f;
 UINT32 test = 0x5D13; // 0x5D
 extern volatile BOOL oDataAvailableFlag;
 extern struct sCochleegAds Ads;
+extern Config1_t config1Register;
+extern Config2_t config2Register;
+extern Config3_t config3Register;
+extern Loff_t    lOffRegister;
+extern ChNSet_t  chSetRegister[8]; 
+extern BiasSensP_t biasSensPRegister;
+extern BiasSensN_t biasSensNRegister; 
+extern LOffSensP_t lOffSensPRegister;
+extern LOffSensN_t lOffSensNRegister;
+extern LOffFlip_t lOffFlipRegister;
 
 //==============================================================================
 //	OPENBCI INTEGRATION
@@ -297,9 +307,33 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
-
+  Ads.DataReadCmd.Sdatac();
+  config1Register.bits.CLK_EN = 0;
+  config1Register.bits.DAISY_ENn = 0;
+  config1Register.bits.SAMPLE_RATE = 0b110;
+  Ads.RegisterCmd.Wreg(CONFIG1, config1Register.byte);
   
-//  oDevStateFlag = 1;
+  config2Register.bits.CAL_AMP0=0;
+  config2Register.bits.CAL_FREQ=0b00;
+  config2Register.bits.INT_CAL=1;
+  Ads.RegisterCmd.Wreg(CONFIG2, config2Register.byte);
+  
+  chSetRegister[CH1].bits.GAIN=0b110;
+  chSetRegister[CH1].bits.MUX=0b101;
+  chSetRegister[CH1].bits.PD=0;
+  chSetRegister[CH1].bits.SRB2=1;
+  Ads.RegisterCmd.Wreg(CH1SET, chSetRegister[CH1].byte);
+  
+  Ads.DeactivateChannel(CH2);
+  Ads.DeactivateChannel(CH3);
+  Ads.DeactivateChannel(CH4);
+  Ads.DeactivateChannel(CH5);
+  Ads.DeactivateChannel(CH6);
+  Ads.DeactivateChannel(CH7);
+  Ads.DeactivateChannel(CH8);
+  
+  
+  oDevStateFlag = 1;
   INT32 err = 0;
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
 }
@@ -345,7 +379,7 @@ void StateDataAcq(void)
   LED_DEBUG1_OFF;
   while(!oDataAvailableFlag){}   // wait for DRDY pin...
   updateBoardData(); // get the fresh ADS results
-  sendChannelData();  // serial fire hose
+  ADS_writeChannelData();  // serial fire hose
   oDataAvailableFlag = FALSE;
   oDataAcqCompletedFlag = 1;
 }
