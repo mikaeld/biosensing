@@ -307,30 +307,30 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
-  Ads.DataReadCmd.Sdatac();
-  config1Register.bits.CLK_EN = 0;
-  config1Register.bits.DAISY_ENn = 0;
-  config1Register.bits.SAMPLE_RATE = 0b110;
-  Ads.RegisterCmd.Wreg(CONFIG1, config1Register.byte);
-  
-  config2Register.bits.CAL_AMP0=0;
-  config2Register.bits.CAL_FREQ=0b00;
-  config2Register.bits.INT_CAL=1;
-  Ads.RegisterCmd.Wreg(CONFIG2, config2Register.byte);
-  
-  chSetRegister[CH1].bits.GAIN=0b110;
-  chSetRegister[CH1].bits.MUX=0b101;
-  chSetRegister[CH1].bits.PD=0;
-  chSetRegister[CH1].bits.SRB2=1;
-  Ads.RegisterCmd.Wreg(CH1SET, chSetRegister[CH1].byte);
-  
-  Ads.DeactivateChannel(CH2);
-  Ads.DeactivateChannel(CH3);
-  Ads.DeactivateChannel(CH4);
-  Ads.DeactivateChannel(CH5);
-  Ads.DeactivateChannel(CH6);
-  Ads.DeactivateChannel(CH7);
-  Ads.DeactivateChannel(CH8);
+//  Ads.DataReadCmd.Sdatac();
+//  config1Register.bits.CLK_EN = 0;
+//  config1Register.bits.DAISY_ENn = 0;
+//  config1Register.bits.SAMPLE_RATE = 0b110;
+//  Ads.RegisterCmd.Wreg(CONFIG1, config1Register.byte);
+//  
+//  config2Register.bits.CAL_AMP0=0;
+//  config2Register.bits.CAL_FREQ=0b00;
+//  config2Register.bits.INT_CAL=1;
+//  Ads.RegisterCmd.Wreg(CONFIG2, config2Register.byte);
+//  
+//  chSetRegister[CH1].bits.GAIN=0b110;
+//  chSetRegister[CH1].bits.MUX=0b101;
+//  chSetRegister[CH1].bits.PD=0;
+//  chSetRegister[CH1].bits.SRB2=1;
+//  Ads.RegisterCmd.Wreg(CH1SET, chSetRegister[CH1].byte);
+//  
+//  Ads.DeactivateChannel(CH2);
+//  Ads.DeactivateChannel(CH3);
+//  Ads.DeactivateChannel(CH4);
+//  Ads.DeactivateChannel(CH5);
+//  Ads.DeactivateChannel(CH6);
+//  Ads.DeactivateChannel(CH7);
+//  Ads.DeactivateChannel(CH8);
   
   
   oDevStateFlag = 1;
@@ -357,7 +357,11 @@ void StateDevState(void)
   oDataAcqCompletedFlag = 0;
   LED_DEBUG1_ON;
   LED_EEGACQ_OFF;
-  eventSerial();
+  Ads.DeactivateChannel(CH1);
+  
+  Timer.DelayMs(100);
+  
+//  eventSerial();
   
 //  if(serialTrigger)
 //  {
