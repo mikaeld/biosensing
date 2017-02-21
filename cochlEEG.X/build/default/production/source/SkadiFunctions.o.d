@@ -15,7 +15,6 @@ source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookSkadi.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookSpi.h  \
- source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookCan.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookTimer.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h 

@@ -275,8 +275,6 @@ void writeAuxData(void);
 #define RATE_1250HZ_N		0x90  //(b10010000)	// 1250Hz sample rate in normal mode
 #define RATE_5000HZ_LP	0x90  //(b10010000)	// 5000Hz sample rate in low-power mode
 
-#define FOOTER 0xC0 
-#define HEADER 0xA0
 
 //==============================================================================
 // Variable declarations

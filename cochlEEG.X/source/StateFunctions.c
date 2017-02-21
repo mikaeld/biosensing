@@ -42,6 +42,24 @@ extern volatile UINT32 timeFromStartMs;
 //==============================================================================
 
 /**************************************************************
+ * Function name  : uint2Bytes
+ * Purpose        : Converts UINT32 to byte array (little endian)
+ * Arguments      : UINT32 val, BYTE* bytes_array
+ * Returns        : void
+ *************************************************************/
+void uint2Bytes(UINT32 val, BYTE* bytes_array){
+  // Create union of shared memory space
+  union {
+    UINT32 uint_variable;
+    BYTE temp_array[4];
+  } u;
+  // Overite bytes of union with float variable
+  u.uint_variable = val;
+  // Assign bytes to input array
+  memcpy(bytes_array, u.temp_array, 4);
+}
+
+/**************************************************************
  * Function name  : SpiTransfer
  * Purpose        : Sends data over SPI specified in argument,
  *                  and empties Rx buffer

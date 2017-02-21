@@ -33,10 +33,12 @@
 //==============================================================================
 // Variable definitions
 //==============================================================================
-BYTE footer = FOOTER;
-BYTE header = HEADER;
-float AdsPacket[9] = {0};
-float PacketCounter = 0;
+BYTE sync_byte[4] = {0xAA, 0xBB, 0XCC, 0XDD};
+UINT32 PacketCounter = 0;
+BYTE count_byte[4] = {0};
+BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
+
+BYTE AdsPacket[36] = {0};
 
 
 //==============================================================================
@@ -801,30 +803,40 @@ void stopADS()
 //write as binary each channel's data
 void ADS_writeChannelData() 
 { 
-  AdsPacket[0] = PacketCounter;
+  
+//    sUartLineBuffer_t AdsPacket = {0}; //Copy directly into buffer
+//  AdsPacket.length = 36;
+//  
+//  memcpy((void *)&AdsPacket.buffer[0], (void *)sync_byte, 4);
+//  AdsPacket.buffer[4] = count_byte[3];
+//  AdsPacket.buffer[5] = count_byte[2];
+//  AdsPacket.buffer[6] = count_byte[1];
+//  AdsPacket.buffer[7] = count_byte[0];
+//  memcpy((void *)&AdsPacket.buffer[8], (void *)boardChannelDataRaw, 4);
+//  memcpy((void *)&AdsPacket.buffer[32], (void *)crc_byte, 4);
+  
+  
+  uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
+  memcpy(&AdsPacket[0], sync_byte, 4);            // Copy sync code to AdsPacket
+  AdsPacket[4] = count_byte[3];
+  AdsPacket[5] = count_byte[2];
+  AdsPacket[6] = count_byte[1];
+  AdsPacket[7] = count_byte[0];
+//  memcpy(&AdsPacket[4], count_byte, 4);           // Copy Counter to AdsPacket (little endian)
+  memcpy(&AdsPacket[8], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
+  memcpy(&AdsPacket[32], crc_byte, 4);            // Copy CRC to AdsPacket
+  
   sUartLineBuffer_t buffer = {0};
   buffer.length = 36;
-
-  int i;
-  for(i=0; i<8; i++)
-  {
-//    AdsPacket[i+1] = (float)boardChannelDataInt[i];  // ADS1299 Datasheet page 25
-    AdsPacket[i+1] = ((float)boardChannelDataInt[i])*4.5f/8388607.0f;  // ADS1299 Datasheet page 25
-  }
-
-  int j;
-  for(j=0; j < 9 ; j++)
-  {
-    float f = AdsPacket[j];
-    memcpy((void *)&buffer.buffer[j*4], (void *)&f, 4);
-  }
   
+  memcpy((void *)&buffer.buffer[0], (void *)AdsPacket, 36);
+
   INT32 err = 0;
   do
   {
     err = Uart.PutTxFifoBuffer(UART4, &buffer);
   }
-  while ( err < 0);  
+  while ( err < 0);
   
   
 //  int j=0;

@@ -230,8 +230,8 @@ void StateMcuInit(void)
 //  INIT_ADC;
 //  err = PrintToUart(UART4,"ADC Init - DONE\r\n");
   
-  INIT_SKADI;
-  err = PrintToUart(UART4,"SKADI Init - DONE\r\n");
+//  INIT_SKADI;
+//  err = PrintToUart(UART4,"SKADI Init - DONE\r\n");
   
 //  INIT_CAN;
 //  err = PrintToUart(UART4,"CAN Init - DONE\r\n");
@@ -295,46 +295,24 @@ void StateAdsInit(void)
 //===============================================================
 void StateAdsConfig(void)
 {
-//  configureInternalTestSignal(ADSTESTSIG_AMP_2X, ADSTESTSIG_PULSE_FAST);
-//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
+  INT32 err = 0;
+//  sUartLineBuffer_t buffer = {0};
+//  buffer.length = 36;
 //  
-//  startStreaming();
+//  buffer.buffer[0] = 0xAA;
+//  buffer.buffer[1] = 0xBB;
+//  buffer.buffer[2] = 0xCC;
+//  buffer.buffer[3] = 0xDD;
+//
+//  do
+//  {
+//    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+//  }
+//  while ( err < 0);
   
-//  SDATAC(BOARD_ADS);
-//  WREG(CONFIG3, 0xE0, BOARD_ADS);
-//  WREG(CONFIG1, 0x96, BOARD_ADS);
-//  WREG(CONFIG2, 0xC0, BOARD_ADS);
-//  WREG(CH1SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_SHORTED, BOARD_ADS);
-//  
-//  START(BOARD_ADS);
-//  RDATAC(BOARD_ADS);
-  
-  
-//  WREG(CH1SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH2SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH3SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH4SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH5SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH6SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH7SET,ADSINPUT_TESTSIG, BOARD_ADS);
-//  WREG(CH8SET,ADSINPUT_TESTSIG, BOARD_ADS);
   
   oDevStateFlag = 1;
-  INT32 err = 0;
+  
 //  err = PrintToUart(UART4, "\r\n*** Loading ADS1299 configuration ***\r\n");
 }
 
