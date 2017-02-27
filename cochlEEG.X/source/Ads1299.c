@@ -36,9 +36,11 @@
 BYTE sync_byte[4] = {0xAA, 0xBB, 0XCC, 0XDD};
 UINT32 PacketCounter = 0;
 BYTE count_byte[4] = {0};
+BYTE timeStamp_byte[4] = {0};
 BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
-
-BYTE AdsPacket[36] = {0};
+extern volatile UINT32 timeFromStart100Us;
+UINT32 timeStampUs = 0;
+BYTE AdsPacket[40] = {0};
 
 
 //==============================================================================
@@ -734,7 +736,7 @@ void updateBoardData(){
       boardChannelDataInt[i] &= 0x00FFFFFF;
     }
   }
- 
+  timeStampUs = timeFromStart100Us * 100;
   if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
 }
 
@@ -817,19 +819,26 @@ void ADS_writeChannelData()
   
   
   uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
+  uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
+  
   memcpy(&AdsPacket[0], sync_byte, 4);            // Copy sync code to AdsPacket
   AdsPacket[4] = count_byte[3];
   AdsPacket[5] = count_byte[2];
   AdsPacket[6] = count_byte[1];
   AdsPacket[7] = count_byte[0];
-//  memcpy(&AdsPacket[4], count_byte, 4);           // Copy Counter to AdsPacket (little endian)
-  memcpy(&AdsPacket[8], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
-  memcpy(&AdsPacket[32], crc_byte, 4);            // Copy CRC to AdsPacket
+  
+  AdsPacket[8] = timeStamp_byte[3];
+  AdsPacket[9] = timeStamp_byte[2];
+  AdsPacket[10] = timeStamp_byte[1];
+  AdsPacket[11] = timeStamp_byte[0];
+  
+  memcpy(&AdsPacket[12], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
+  memcpy(&AdsPacket[36], crc_byte, 4);            // Copy CRC to AdsPacket
   
   sUartLineBuffer_t buffer = {0};
-  buffer.length = 36;
+  buffer.length = 40;
   
-  memcpy((void *)&buffer.buffer[0], (void *)AdsPacket, 36);
+  memcpy((void *)&buffer.buffer[0], (void *)AdsPacket, 40);
 
   INT32 err = 0;
   do
@@ -837,19 +846,6 @@ void ADS_writeChannelData()
     err = Uart.PutTxFifoBuffer(UART4, &buffer);
   }
   while ( err < 0);
-  
-  
-//  int j=0;
-//  for(j=0; j < 9 ; j++)
-//  {
-//    BYTE data[sizeof(float)];
-//    float f = AdsPacket[j];
-//    memcpy(data, &f, sizeof f);
-//    Uart.SendDataByte(UART4,*(data + 0));
-//    Uart.SendDataByte(UART4,*(data + 1));
-//    Uart.SendDataByte(UART4,*(data + 2));
-//    Uart.SendDataByte(UART4,*(data + 3));
-//  }
   
   PacketCounter++;
 }

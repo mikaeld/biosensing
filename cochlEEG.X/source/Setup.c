@@ -63,7 +63,7 @@ void InitTimer(void)
   {
 
   }
-  timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_US);   // Open Timer 2 with a period of 500 us
+  timerCounterValue = Timer.Open(TIMER_2, 500, SCALE_MS);   // Open Timer 2 with a period of 500 us
   if (timerCounterValue < 0)
   {
 
@@ -73,7 +73,7 @@ void InitTimer(void)
   {
 
   }
-  timerCounterValue = Timer.Open(TIMER_4, 500, SCALE_MS);   // Open Timer 4 with a period of 500 ms
+  timerCounterValue = Timer.Open(TIMER_4, 100, SCALE_US);   // Open Timer 4 with a period of 1000 ns (Used for frame timestamp)
   if (timerCounterValue < 0)
   {
 
@@ -81,7 +81,7 @@ void InitTimer(void)
   timerCounterValue = Timer.Open(TIMER_5, 1000, SCALE_US);   // Open Timer 5 with a period of 1 ms, used millis() counter function)
   if (timerCounterValue < 0)
   {
-
+   
   }
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -274,7 +274,7 @@ void InitUart (void)
 //  Uart.Open(UART1, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 1 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART2, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 2 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-  Uart.Open(UART4, BAUD115200, oConfig, oFifoMode, oLineControl);   // Open UART 4 as : 115200 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART4, 1250000, oConfig, oFifoMode, oLineControl);      // Open UART 4 as : 1250000 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART5, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 5 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 

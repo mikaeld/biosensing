@@ -32,6 +32,7 @@
 //==============================================================================
 volatile UINT32 timeFromStartMs = 0;
 volatile BOOL oDataAvailableFlag = FALSE;
+volatile UINT32 timeFromStart100Us = 0;
 
 /*******************************************************************************
  ***********************                               *************************
@@ -109,10 +110,7 @@ void __ISR(_TIMER_3_VECTOR, T3_INTERRUPT_PRIORITY) Timer3InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 {
-  /*
-   * DEVELOPPER CODE HERE
-   */
-
+  timeFromStart100Us++;
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[3]++;
 
