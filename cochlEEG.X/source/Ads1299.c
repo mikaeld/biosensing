@@ -40,7 +40,7 @@ BYTE timeStamp_byte[4] = {0};
 BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
 extern volatile UINT32 timeFromStart100Us;
 UINT32 timeStampUs = 0;
-BYTE AdsPacket[40] = {0};
+sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
 
 
 //==============================================================================
@@ -157,13 +157,13 @@ void initialize_ads(){
     Timer.DelayMs(40);
     resetADS(BOARD_ADS); // reset the on-board ADS registers, and stop DataContinuousMode
     Timer.DelayMs(10);
-    WREG(CONFIG1,0xB6,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 1000SPS
+    WREG(CONFIG1,0xB5,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 500SPS
     Timer.DelayMs(40);
     resetADS(DAISY_ADS); // software reset daisy module if present
     Timer.DelayMs(10);
     daisyPresent = smellDaisy(); // check to see if daisy module is present
     if(!daisyPresent){
-      WREG(CONFIG1,0x96,BOARD_ADS); // turn off clk output if no daisy present
+      WREG(CONFIG1,0x95,BOARD_ADS); // turn off clk output if no daisy present
       numChannels = 8;    // expect up to 8 ADS channels
     }else{
       numChannels = 16;   // expect up to 16 ADS channels
@@ -713,7 +713,7 @@ void updateBoardData(){
   int ByteCounter = 0;
   int i;
 
-  csLow(BOARD_ADS);       //  open SPI
+  SPI4_CS_LOW;       //  open SPI
   for(i=0; i<3; i++){ 
     inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
     boardStat = (boardStat << 8) | inByte;
@@ -724,18 +724,18 @@ void updateBoardData(){
       inByte = xfer(0x00);
       boardChannelDataRaw[ByteCounter] = inByte;  // raw data goes here
       ByteCounter++;
-      boardChannelDataInt[i] = (boardChannelDataInt[i]<<8) | inByte;  // int data goes here
+//      boardChannelDataInt[i] = (boardChannelDataInt[i]<<8) | inByte;  // int data goes here
     }
   }
-  csHigh(BOARD_ADS);        //  close SPI
+  SPI4_CS_HIGH;        //  close SPI
   // need to convert 24bit to 32bit if using the filter
-  for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-    if(BITREAD(boardChannelDataInt[i],23) == 1){ 
-      boardChannelDataInt[i] |= 0xFF000000;
-    }else{
-      boardChannelDataInt[i] &= 0x00FFFFFF;
-    }
-  }
+//  for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
+//    if(BITREAD(boardChannelDataInt[i],23) == 1){ 
+//      boardChannelDataInt[i] |= 0xFF000000;
+//    }else{
+//      boardChannelDataInt[i] &= 0x00FFFFFF;
+//    }
+//  }
   timeStampUs = timeFromStart100Us * 100;
   if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
 }
@@ -805,45 +805,28 @@ void stopADS()
 //write as binary each channel's data
 void ADS_writeChannelData() 
 { 
-  
-//    sUartLineBuffer_t AdsPacket = {0}; //Copy directly into buffer
-//  AdsPacket.length = 36;
-//  
-//  memcpy((void *)&AdsPacket.buffer[0], (void *)sync_byte, 4);
-//  AdsPacket.buffer[4] = count_byte[3];
-//  AdsPacket.buffer[5] = count_byte[2];
-//  AdsPacket.buffer[6] = count_byte[1];
-//  AdsPacket.buffer[7] = count_byte[0];
-//  memcpy((void *)&AdsPacket.buffer[8], (void *)boardChannelDataRaw, 4);
-//  memcpy((void *)&AdsPacket.buffer[32], (void *)crc_byte, 4);
-  
-  
+  AdsPacket.length = 40; 
   uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
   uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
   
-  memcpy(&AdsPacket[0], sync_byte, 4);            // Copy sync code to AdsPacket
-  AdsPacket[4] = count_byte[3];
-  AdsPacket[5] = count_byte[2];
-  AdsPacket[6] = count_byte[1];
-  AdsPacket[7] = count_byte[0];
+  memcpy(&AdsPacket.buffer[0], sync_byte, 4);            // Copy sync code to AdsPacket
+  AdsPacket.buffer[4] = count_byte[3];         // Rearranging from little endian to big endian
+  AdsPacket.buffer[5] = count_byte[2];
+  AdsPacket.buffer[6] = count_byte[1];
+  AdsPacket.buffer[7] = count_byte[0];
   
-  AdsPacket[8] = timeStamp_byte[3];
-  AdsPacket[9] = timeStamp_byte[2];
-  AdsPacket[10] = timeStamp_byte[1];
-  AdsPacket[11] = timeStamp_byte[0];
+  AdsPacket.buffer[8] = timeStamp_byte[3];     // Rearranging from little endian to big endian
+  AdsPacket.buffer[9] = timeStamp_byte[2];
+  AdsPacket.buffer[10] = timeStamp_byte[1];
+  AdsPacket.buffer[11] = timeStamp_byte[0];
   
-  memcpy(&AdsPacket[12], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
-  memcpy(&AdsPacket[36], crc_byte, 4);            // Copy CRC to AdsPacket
-  
-  sUartLineBuffer_t buffer = {0};
-  buffer.length = 40;
-  
-  memcpy((void *)&buffer.buffer[0], (void *)AdsPacket, 40);
-
+  memcpy(&AdsPacket.buffer[12], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
+  memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
+    
   INT32 err = 0;
   do
   {
-    err = Uart.PutTxFifoBuffer(UART4, &buffer);
+    err = Uart.PutTxFifoBuffer(UART4, &AdsPacket);
   }
   while ( err < 0);
   

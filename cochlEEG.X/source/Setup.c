@@ -133,7 +133,7 @@ void InitSpi(void)
 //  {
 //    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
 //  }
-  err = Spi.Open(SPI4, oMasterFlags, 4e6);   // Open the SPI4 as a master at a bitrate of 4 MHz
+  err = Spi.Open(SPI4, oMasterFlags, 1e7);   // Open the SPI4 as a master at a bitrate of 10 MHz
   if (err < 0)                // Check for errors
   {
     LED_ERROR_ON;    // Turn on the LED_ERROR
@@ -274,7 +274,7 @@ void InitUart (void)
 //  Uart.Open(UART1, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 1 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART2, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 2 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-  Uart.Open(UART4, 1250000, oConfig, oFifoMode, oLineControl);      // Open UART 4 as : 1250000 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART4, 2000000, oConfig, oFifoMode, oLineControl);      // Open UART 4 as : 1250000 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART5, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 5 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 
