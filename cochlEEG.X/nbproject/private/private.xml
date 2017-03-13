@@ -7,6 +7,7 @@
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/headers/HardwareProfile.h</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/Ads1299.c</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/Setup.c</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/StateFunctions.c</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/StateMachine.c</file>
         </group>
     </open-files>

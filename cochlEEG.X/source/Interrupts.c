@@ -39,11 +39,8 @@ volatile UINT32 timeFromStart100Us = 0;
  ********************       CHANGENOTICE INTERRUPTS       **********************
  ***********************                               *************************
  *******************************************************************************/
-void __ISR( _CHANGE_NOTICE_VECTOR, ipl1auto) ChangeNoticeInterruptHandler(void)
+void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
 {
-  /* Code required for determining which button was pressed */
-  /* Code for required processing */
-  
   if(!Port.C.ReadBits(BIT_14))
   {
     oDataAvailableFlag = TRUE;
@@ -54,7 +51,7 @@ void __ISR( _CHANGE_NOTICE_VECTOR, ipl1auto) ChangeNoticeInterruptHandler(void)
     oDataAvailableFlag = FALSE;
   }
   mCNClearIntFlag(); // Clear CN interrupt flag
-  asm ("nop"); // Suggested by text to clear pipeline
+  //asm ("nop"); // Suggested by text to clear pipeline
 }
 
 /*******************************************************************************

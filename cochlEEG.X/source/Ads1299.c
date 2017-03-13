@@ -159,15 +159,8 @@ void initialize_ads(){
     Timer.DelayMs(10);
     WREG(CONFIG1,0xB5,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 500SPS
     Timer.DelayMs(40);
-    resetADS(DAISY_ADS); // software reset daisy module if present
-    Timer.DelayMs(10);
-    daisyPresent = smellDaisy(); // check to see if daisy module is present
-    if(!daisyPresent){
-      WREG(CONFIG1,0x95,BOARD_ADS); // turn off clk output if no daisy present
-      numChannels = 8;    // expect up to 8 ADS channels
-    }else{
-      numChannels = 16;   // expect up to 16 ADS channels
-    } 
+    numChannels = 8;    // expect up to 8 ADS channels
+
 
     // DEFAULT CHANNEL SETTINGS FOR ADS
     defaultChannelSettings[POWER_DOWN] = NO;        // on = NO, off = YES
@@ -197,47 +190,6 @@ void initialize_ads(){
     }
     verbosity = FALSE;      // when verbosity is TRUE, there will be Serial feedback
     firstDataPacket = TRUE;
-}
-
-BOOL smellDaisy(void){ // check if daisy present
-  BOOL isDaisy = FALSE;
-// //  Daisy unimplemented, return false by default
-//  BYTE setting = RREG(ID_REG,DAISY_ADS); // try to read the daisy product ID
-//  if(verbosity)
-//  {
-//    PrintToUart(UART4,"Daisy ID 0x"); 
-//    Uart.SendDataByte(UART4,setting);
-//  }
-//  if(setting == ADS_ID) {isDaisy = TRUE;} // should read as 0x3E
-  return isDaisy;
-}
-
-void removeDaisy(void){
-  if(daisyPresent){
-    SDATAC(DAISY_ADS);
-    RESET(DAISY_ADS);
-    STANDBY(DAISY_ADS);
-    daisyPresent = FALSE;
-    if(!isRunning) PrintlnToUart(UART4,"daisy removed");
-  }else{
-    if(!isRunning) PrintlnToUart(UART4,"no daisy to remove!");
-  }
-}
-
-void attachDaisy(void){
-  WREG(CONFIG1,0xB6,BOARD_ADS); // tell on-board ADS to output the clk, set the data rate to 250SPS
-  Timer.DelayMs(40);
-  resetADS(DAISY_ADS); // software reset daisy module if present
-  Timer.DelayMs(10);
-  daisyPresent = smellDaisy(); 
-  if(!daisyPresent){
-    WREG(CONFIG1,0x96,BOARD_ADS); // turn off clk output if no daisy present
-    numChannels = 8;    // expect up to 8 ADS channels
-    if(!isRunning) PrintlnToUart(UART4,"no daisy to attach!");
-  }else{
-    numChannels = 16;   // expect up to 16 ADS channels
-    if(!isRunning) PrintlnToUart(UART4,"daisy attached");
-  } 
 }
 
 //reset all the ADS1299's settings. Stops all data acquisition

@@ -112,8 +112,8 @@
 #define U2_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
 #define UART3_INTERRUPT_PRIORITY        1           // Used in ChinookLib function
 #define U3_INTERRUPT_PRIORITY           ipl1auto    // Used in ISR
-#define UART4_INTERRUPT_PRIORITY        2           // Used in ChinookLib function
-#define U4_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
+#define UART4_INTERRUPT_PRIORITY        6           // Used in ChinookLib function
+#define U4_INTERRUPT_PRIORITY           ipl6auto    // Used in ISR
 #define UART5_INTERRUPT_PRIORITY        2           // Used in ChinookLib function
 #define U5_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
 #define UART6_INTERRUPT_PRIORITY        1           // Used in ChinookLib function
