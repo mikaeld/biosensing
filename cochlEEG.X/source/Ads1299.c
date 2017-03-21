@@ -88,8 +88,8 @@ void stopStreaming(){
 BYTE xfer(BYTE _data) 
 {
     BYTE inByte;
-    while(Spi.IsSpiBusy(SPI4));
-    SPI4_CS_LOW;
+//    while(Spi.IsSpiBusy(SPI4));
+//    SPI4_CS_LOW;
     inByte = SpiTransfer(SPI4, _data);
     return inByte;
 }

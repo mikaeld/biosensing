@@ -258,7 +258,7 @@ void StateAdsInit(void)
 {
   oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED 
   INT32 err = 0;
-//  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
+  err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
 //  
 //  ADS_NO_RESET;
 //  Timer.DelayMs(1);
@@ -275,7 +275,7 @@ void StateAdsInit(void)
 //    err = PrintToUart(UART4, "ADS1299 DEVICE ID DETECTED (0X3E)\r\n"
 //      "*** ADS1299 initialization routine COMPLETED ***\r\n");
   
-  startFromScratch(); // Init ADS first time
+   startFromScratch(); // Init ADS first time
     
   LED_EEGACQ_ON;
   Timer.DelayMs(200);
