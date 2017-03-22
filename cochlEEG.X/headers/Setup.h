@@ -58,6 +58,7 @@ void InitI2c          (void);
 void InitWdt          (void);
 void InitAdc          (void);
 void InitInputCapture (void);
+void InitDma          (void);
 void StartInterrupts  (void);
 
 
@@ -66,6 +67,7 @@ void StartInterrupts  (void);
 //==============================================================================
 
 // INIT DEFINES
+#define INIT_DMA            InitDma()
 #define INIT_TIMER          InitTimer()
 #define INIT_PWM            InitPwm()
 #define INIT_PORTS          InitPorts()

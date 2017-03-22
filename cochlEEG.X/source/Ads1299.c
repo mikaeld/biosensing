@@ -39,8 +39,9 @@ BYTE count_byte[4] = {0};
 BYTE timeStamp_byte[4] = {0};
 BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
 extern volatile UINT32 timeFromStart100Us;
-UINT32 timeStampUs = 0;
+extern volatile UINT32 timeStampUs;
 sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
+extern BYTE adsDataConversion[27];
 
 
 //==============================================================================
@@ -772,7 +773,7 @@ void ADS_writeChannelData()
   AdsPacket.buffer[10] = timeStamp_byte[1];
   AdsPacket.buffer[11] = timeStamp_byte[0];
   
-  memcpy(&AdsPacket.buffer[12], boardChannelDataRaw, 24); // Copy RawData to AdsPacket
+  memcpy(&AdsPacket.buffer[12], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
   memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
     
   INT32 err = 0;

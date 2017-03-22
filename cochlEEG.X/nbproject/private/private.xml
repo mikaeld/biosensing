@@ -4,10 +4,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/D:/Github/cochlEEG/cochlEEG.X/headers/HardwareProfile.h</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/main.c</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/Ads1299.c</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/headers/Ads1299.h</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/Setup.c</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/headers/StateMachine.h</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/Interrupts.c</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/StateFunctions.c</file>
+            <file>file:/D:/Github/cochlEEG/cochlEEG.X/headers/Interrupts.h</file>
             <file>file:/D:/Github/cochlEEG/cochlEEG.X/source/StateMachine.c</file>
         </group>
     </open-files>

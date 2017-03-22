@@ -30,6 +30,15 @@
 //==============================================================================
 //	Variable Declaration
 //==============================================================================
+extern volatile BOOL oDmaTxIntFlag;
+extern volatile BOOL oDmaRxIntFlag;
+
+DmaChannel		dmaTxChn = DMA_CHANNEL1;	// DMA channel to use for our example
+  // NOTE: the DMA ISR setting has to match the channel number
+DmaChannel    dmaRxChn = DMA_CHANNEL2;
+BYTE adsDataConversion[27] = {0};     // Buffer for data conversions
+BYTE adsSpiDummyTx[27] = {0};   // Dummy data to send to ADS1299 during data conversion (SPI transaction)
+
 
 /***********************************
  * Table of functions used in Skadi
@@ -452,6 +461,42 @@ void InitInputCapture(void)
   
 }
 
+//===========================
+//	INIT DMA
+//===========================
+void InitDma(void)
+{
+  /**********************************************/
+  /***      Configure SPI Tx DMA Channel      ***/
+  /**********************************************/
+  
+  // open and configure the DMA channel.
+	DmaChnOpen(dmaTxChn, DMA_CHN_PRI2, DMA_OPEN_DEFAULT);
+
+	// set the events: we want the Change Notice interrupt (DRDY pin) to start our transfer
+	DmaChnSetEventControl(dmaTxChn, DMA_EV_START_IRQ_EN|DMA_EV_START_IRQ(_CHANGE_NOTICE_IRQ));
+  
+  DmaChnSetTxfer(dmaTxChn, adsSpiDummyTx, (void*)&SPI4BUF, sizeof(adsSpiDummyTx), 1, 1);
+  
+  DmaChnSetEvEnableFlags(dmaTxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred
+  
+  /**********************************************/
+  /***      Configure SPI Rx DMA Channel      ***/
+  /**********************************************/
+  // open and configure the DMA channel.
+	DmaChnOpen(dmaRxChn, DMA_CHN_PRI3, DMA_OPEN_DEFAULT);
+
+	// set the events: we want the SPI receive buffer full interrupt to start our transfer
+	DmaChnSetEventControl(dmaRxChn, DMA_EV_START_IRQ_EN|DMA_EV_START_IRQ(_CHANGE_NOTICE_IRQ));
+
+	// set the transfer:
+	// source is the SPI buffer, dest is our memory buffer
+	// source size is one byte, destination size is the whole buffer
+	// cell size is one byte: we want one byte to be sent per each SPI RXBF event
+	DmaChnSetTxfer(dmaRxChn, (void*)&SPI4BUF, adsDataConversion, 1, sizeof(adsDataConversion), 1);
+
+	DmaChnSetEvEnableFlags(dmaRxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred
+}
 
 //===========================
 //	START INTERRUPTS
@@ -460,6 +505,21 @@ void StartInterrupts(void)
 {
   INT8 err;
 
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// Enable DMA interrupts
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  INTSetVectorPriority(INT_VECTOR_DMA(dmaTxChn), INT_PRIORITY_LEVEL_5);		// set INT controller priority
+	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaTxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
+	INTEnable(INT_SOURCE_DMA(dmaTxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
+	oDmaTxIntFlag = 0;			// clear the interrupt flag we're  waiting on  
+ 
+    
+  INTSetVectorPriority(INT_VECTOR_DMA(dmaRxChn), INT_PRIORITY_LEVEL_5);		// set INT controller priority
+	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaRxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
+  INTEnable(INT_SOURCE_DMA(dmaRxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
+	oDmaRxIntFlag = 0;			// clear the interrupt flag we're  waiting on
+  
+  
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable timer interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -604,6 +664,7 @@ void StartInterrupts(void)
 // Enable multi-vector interrupts
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   INTConfigureSystem(INT_SYSTEM_CONFIG_MULT_VECTOR);
+  // INTEnableSystemMultiVectoredInt(); // SHOULD BE ENABLED?
   INTEnableInterrupts();
 
 }

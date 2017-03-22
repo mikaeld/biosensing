@@ -30,7 +30,6 @@
 //==============================================================================
 
 float temp = 0.0f;
-UINT32 test = 0x5D13; // 0x5D
 extern volatile BOOL oDataAvailableFlag;
 
 //==============================================================================
@@ -239,6 +238,8 @@ void StateMcuInit(void)
 //  INIT_I2C;
 //  err = PrintToUart(UART4,"I2C Init - DONE\r\n");
   
+  INIT_DMA;
+  
   START_INTERRUPTS;
   err = PrintToUart(UART4,"INTERRUPTS STARTED*\r\n");
   
@@ -355,8 +356,10 @@ void StateDevState(void)
 void StateDataAcq(void)
 {
   LED_DEBUG1_OFF;
+  
+  // SPI transaction of Converted Data handled by DMA CHN1&2, triggered by 
+  // CN Interrupt on DRDY Pin
   while(!oDataAvailableFlag){}   // wait for DRDY pin...
-  updateChannelData(); // get the fresh ADS results
   sendChannelData();  // serial fire hose
 
   oDataAvailableFlag = FALSE;

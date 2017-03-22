@@ -280,39 +280,39 @@ void writeAuxData(void);
 // Variable declarations
 //==============================================================================
 
-    INT16 auxData[3];
-    BYTE regData[24];                 // array is used to mirror register data
-    BYTE lastBoardDataRaw[24];
-    BYTE boardChannelDataRaw[24];     // array to hold raw channel data
-    BYTE meanBoardDataRaw[24];
-    BYTE lastDaisyDataRaw[24];
-    BYTE daisyChannelDataRaw[24];
-    BYTE meanDaisyDataRaw[24];
-    INT32 boardStat;                  // used to hold the status register
-    INT32 daisyStat;
-    INT32 boardChannelDataInt[8];     // array used when reading channel data as INT32s
-    INT32 lastBoardChannelDataInt[8];
-    INT32 meanBoardChannelDataInt[8];
-    INT32 daisyChannelDataInt[8];     // array used when reading channel data as INT32s
-    INT32 lastDaisyChannelDataInt[8];
-    INT32 meanDaisyChannelDataInt[8];
-    INT32 numChannels;
-    BYTE channelSettings[16][6];      // array to hold current channel settings
-    BYTE defaultChannelSettings[6];   // default channel settings
-    BYTE leadOffSettings[16][2];      // used to control on/off of impedance measure for P and N side of each channel
-    
-    BOOL useInBias[16];               // used to remember if we were included in Bias before channel power down
-    BOOL useSRB2[16];
-    BOOL boardUseSRB1;                // used to keep track of if we are using SRB1
-    BOOL daisyUseSRB1;
-    BOOL verbosity;                   // turn on/off Serial verbosity
-    BOOL daisyPresent;
-    BOOL firstDataPacket;
-    BOOL isRunning;
-    BOOL useAux;
-    BOOL useAccel;
-    
-    BYTE sampleCounter;
+INT16 auxData[3];
+BYTE regData[24];                 // array is used to mirror register data
+BYTE lastBoardDataRaw[24];
+BYTE boardChannelDataRaw[24];     // array to hold raw channel data
+BYTE meanBoardDataRaw[24];
+BYTE lastDaisyDataRaw[24];
+BYTE daisyChannelDataRaw[24];
+BYTE meanDaisyDataRaw[24];
+INT32 boardStat;                  // used to hold the status register
+INT32 daisyStat;
+INT32 boardChannelDataInt[8];     // array used when reading channel data as INT32s
+INT32 lastBoardChannelDataInt[8];
+INT32 meanBoardChannelDataInt[8];
+INT32 daisyChannelDataInt[8];     // array used when reading channel data as INT32s
+INT32 lastDaisyChannelDataInt[8];
+INT32 meanDaisyChannelDataInt[8];
+INT32 numChannels;
+BYTE channelSettings[16][6];      // array to hold current channel settings
+BYTE defaultChannelSettings[6];   // default channel settings
+BYTE leadOffSettings[16][2];      // used to control on/off of impedance measure for P and N side of each channel
+
+BOOL useInBias[16];               // used to remember if we were included in Bias before channel power down
+BOOL useSRB2[16];
+BOOL boardUseSRB1;                // used to keep track of if we are using SRB1
+BOOL daisyUseSRB1;
+BOOL verbosity;                   // turn on/off Serial verbosity
+BOOL daisyPresent;
+BOOL firstDataPacket;
+BOOL isRunning;
+BOOL useAux;
+BOOL useAccel;
+
+BYTE sampleCounter;
 
 /***********************************
  * Template structure

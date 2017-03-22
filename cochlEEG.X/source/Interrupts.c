@@ -31,8 +31,51 @@
 // VARIABLES
 //==============================================================================
 volatile UINT32 timeFromStartMs = 0;
-volatile BOOL oDataAvailableFlag = FALSE;
+volatile BOOL   oDataAvailableFlag = FALSE;
 volatile UINT32 timeFromStart100Us = 0;
+volatile BOOL		oDmaTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile BOOL		oDmaRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile UINT32 timeStampUs = 0;
+
+
+/*******************************************************************************
+ ***********************                               *************************
+ ********************            DMA INTERRUPTS           **********************
+ ***********************                               *************************
+ *******************************************************************************/
+void __ISR(_DMA1_VECTOR, IPL5SOFT) Dma1InterruptHandler(void)
+{
+	int	evFlags;				// event flags when getting the interrupt
+
+	INTClearFlag(INT_SOURCE_DMA(DMA_CHANNEL1));	// acknowledge the INT controller, we're servicing int
+
+	evFlags=DmaChnGetEvFlags(DMA_CHANNEL1);	// get the event flags
+
+    if(evFlags&DMA_EV_BLOCK_DONE)
+    { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
+    	oDmaTxIntFlag=1;
+      DmaChnClrEvFlags(DMA_CHANNEL1, DMA_EV_BLOCK_DONE);
+    }
+//  SPI4_CS_HIGH;
+  oDataAvailableFlag = TRUE;
+}
+
+void __ISR(_DMA2_VECTOR, IPL5SOFT) Dma2InterruptHandler(void)
+{
+	int	evFlags;				// event flags when getting the interrupt
+
+	INTClearFlag(INT_SOURCE_DMA(DMA_CHANNEL2));	// acknowledge the INT controller, we're servicing int
+
+	evFlags=DmaChnGetEvFlags(DMA_CHANNEL2);	// get the event flags
+
+    if(evFlags&DMA_EV_BLOCK_DONE)
+    { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
+    	oDmaRxIntFlag=1;
+      DmaChnClrEvFlags(DMA_CHANNEL2, DMA_EV_BLOCK_DONE);
+    }
+  SPI4_CS_HIGH;
+  oDataAvailableFlag = TRUE;
+}
 
 /*******************************************************************************
  ***********************                               *************************
@@ -43,7 +86,11 @@ void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
 {
   if(!Port.C.ReadBits(BIT_14))
   {
-    oDataAvailableFlag = TRUE;
+    SPI4_CS_LOW;
+    timeStampUs = timeFromStart100Us * 100;
+    DmaChnEnable(DMA_CHANNEL2); 
+    DmaChnStartTxfer(DMA_CHANNEL1,DMA_WAIT_NOT,0); 
+    
     LED_EEGACQ_TOGGLE;
   }
   else
@@ -51,7 +98,6 @@ void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
     oDataAvailableFlag = FALSE;
   }
   mCNClearIntFlag(); // Clear CN interrupt flag
-  //asm ("nop"); // Suggested by text to clear pipeline
 }
 
 /*******************************************************************************
