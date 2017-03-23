@@ -359,7 +359,7 @@ void StateDataAcq(void)
   
   // SPI transaction of Converted Data handled by DMA CHN1&2, triggered by 
   // CN Interrupt on DRDY Pin
-  while(!oDataAvailableFlag){}   // wait for DRDY pin...
+//  while(!oDataAvailableFlag){}   // wait for DRDY pin...
   sendChannelData();  // serial fire hose
 
   oDataAvailableFlag = FALSE;

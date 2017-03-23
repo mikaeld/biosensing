@@ -353,9 +353,9 @@ section                    address  length [bytes]      (dec)  Description
 .dinit                  0x9d000000         0x8f20       36640   
 .text                   0x9d008f20         0xa32c       41772  App's exec code 
 .text.vfprintf          0x9d01324c         0x1be0        7136   
-.text                   0x9d014e2c         0xa700       42752  App's exec code 
-.rodata                 0x9d01f52c          0x7d4        2004  Read-only const 
-.text                   0x9d01fd00         0x14dc        5340  App's exec code 
+.text                   0x9d014e2c         0xa704       42756  App's exec code 
+.rodata                 0x9d01f530          0x7d4        2004  Read-only const 
+.text                   0x9d01fd04         0x14d8        5336  App's exec code 
 .text.scale             0x9d0211dc          0x2a0         672   
 .text.fpsubadd          0x9d02147c          0x278         632   
 .text.malloc            0x9d0216f4          0x278         632   
@@ -3966,98 +3966,98 @@ LOAD data_init
                 0x9d01324c     0x1be0 c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2/../../../../pic32mx/lib\libc.a(doprnt.o)
                 0x9d01324c                vfprintf
 
-.text           0x9d014e2c     0xa700
- .text          0x9d014e2c     0x1a28 build/default/production/source/Interrupts.o
+.text           0x9d014e2c     0xa704
+ .text          0x9d014e2c     0x1a2c build/default/production/source/Interrupts.o
                 0x9d014e2c                Dma1InterruptHandler
-                0x9d014f68                Dma2InterruptHandler
-                0x9d0150b8                ChangeNoticeInterruptHandler
-                0x9d015254                Timer1InterruptHandler
-                0x9d0152ec                Timer2InterruptHandler
-                0x9d015384                Timer3InterruptHandler
-                0x9d015404                Timer4InterruptHandler
-                0x9d0154a8                Timer5InterruptHandler
-                0x9d01554c                Uart4InterruptHandler
-                0x9d01583c                AdcInterruptHandler
-                0x9d015978                InputCapture1InterruptHandler
-                0x9d015b14                InputCapture2InterruptHandler
-                0x9d015cc0                InputCapture3InterruptHandler
-                0x9d015e5c                InputCapture4InterruptHandler
-                0x9d015ff8                InputCapture5InterruptHandler
-                0x9d016194                I2c5InterruptHandler
-                0x9d016720                Can1InterruptHandler
- .text          0x9d016854     0x16a0 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookSkadi.o)
- .text          0x9d017ef4     0x144c ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookInputCapture.o)
- .text          0x9d019340     0x1084 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookUart.o)
-                0x9d01a224                UartFifoWrite
-                0x9d01a2f4                UartFifoRead
- .text          0x9d01a3c4     0x1034 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookPwm.o)
- .text          0x9d01b3f8     0x1008 build/default/production/source/StateFunctions.o
-                0x9d01b3f8                uint2Bytes
-                0x9d01b40c                SpiTransfer
-                0x9d01b46c                PrintToUart
-                0x9d01b4c0                PrintToUartChar
-                0x9d01b520                PrintToUartHex
-                0x9d01b580                PrintToUartDec
-                0x9d01b5e0                PrintlnToUart
-                0x9d01b674                printHex
-                0x9d01b6d0                constrain
-                0x9d01b704                sendEOT
-                0x9d01b728                getChannelNumber
-                0x9d01b808                loadLeadOffSettings
-                0x9d01b954                loadChannelSettings
-                0x9d01ba04                stopRunning
-                0x9d01ba34                startRunning
-                0x9d01ba68                sendDefaultChannelSettings
-                0x9d01bac4                changeChannelLeadOffDetect_maintainRunningState
-                0x9d01bb1c                activateAllChannelsToTestCondition
-                0x9d01bba8                changeChannelState_maintainRunningState
-                0x9d01bc30                setChannelsToDefaultSetting
-                0x9d01bc7c                writeChannelSettings_maintainRunningState
-                0x9d01bcd8                printRegisters
-                0x9d01bd18                startFromScratch
-                0x9d01bda8                millis
-                0x9d01bdb4                getCommand
-                0x9d01c364                eventSerial
- .text          0x9d01c400      0xfcc ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookSpi.o)
-                0x9d01d1d4                SpiFifoWrite
-                0x9d01d2d0                SpiFifoRead
- .text          0x9d01d3cc      0xe28 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookAdc.o)
- .text          0x9d01e1f4      0xb00 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookCan.o)
- .text          0x9d01ecf4      0x838 build/default/production/source/Setup.o
-                0x9d01ecf4                InitTimer
-                0x9d01ede0                InitSpi
-                0x9d01ee2c                InitPwm
-                0x9d01ef2c                InitPorts
-                0x9d01f07c                InitUart
-                0x9d01f0ec                InitSkadi
-                0x9d01f120                InitCan
-                0x9d01f178                InitI2c
-                0x9d01f234                InitWdt
-                0x9d01f258                InitAdc
-                0x9d01f2a4                InitInputCapture
-                0x9d01f2ac                InitDma
-                0x9d01f36c                StartInterrupts
+                0x9d014f6c                Dma2InterruptHandler
+                0x9d0150bc                ChangeNoticeInterruptHandler
+                0x9d015258                Timer1InterruptHandler
+                0x9d0152f0                Timer2InterruptHandler
+                0x9d015388                Timer3InterruptHandler
+                0x9d015408                Timer4InterruptHandler
+                0x9d0154ac                Timer5InterruptHandler
+                0x9d015550                Uart4InterruptHandler
+                0x9d015840                AdcInterruptHandler
+                0x9d01597c                InputCapture1InterruptHandler
+                0x9d015b18                InputCapture2InterruptHandler
+                0x9d015cc4                InputCapture3InterruptHandler
+                0x9d015e60                InputCapture4InterruptHandler
+                0x9d015ffc                InputCapture5InterruptHandler
+                0x9d016198                I2c5InterruptHandler
+                0x9d016724                Can1InterruptHandler
+ .text          0x9d016858     0x16a0 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookSkadi.o)
+ .text          0x9d017ef8     0x144c ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookInputCapture.o)
+ .text          0x9d019344     0x1084 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookUart.o)
+                0x9d01a228                UartFifoWrite
+                0x9d01a2f8                UartFifoRead
+ .text          0x9d01a3c8     0x1034 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookPwm.o)
+ .text          0x9d01b3fc     0x1008 build/default/production/source/StateFunctions.o
+                0x9d01b3fc                uint2Bytes
+                0x9d01b410                SpiTransfer
+                0x9d01b470                PrintToUart
+                0x9d01b4c4                PrintToUartChar
+                0x9d01b524                PrintToUartHex
+                0x9d01b584                PrintToUartDec
+                0x9d01b5e4                PrintlnToUart
+                0x9d01b678                printHex
+                0x9d01b6d4                constrain
+                0x9d01b708                sendEOT
+                0x9d01b72c                getChannelNumber
+                0x9d01b80c                loadLeadOffSettings
+                0x9d01b958                loadChannelSettings
+                0x9d01ba08                stopRunning
+                0x9d01ba38                startRunning
+                0x9d01ba6c                sendDefaultChannelSettings
+                0x9d01bac8                changeChannelLeadOffDetect_maintainRunningState
+                0x9d01bb20                activateAllChannelsToTestCondition
+                0x9d01bbac                changeChannelState_maintainRunningState
+                0x9d01bc34                setChannelsToDefaultSetting
+                0x9d01bc80                writeChannelSettings_maintainRunningState
+                0x9d01bcdc                printRegisters
+                0x9d01bd1c                startFromScratch
+                0x9d01bdac                millis
+                0x9d01bdb8                getCommand
+                0x9d01c368                eventSerial
+ .text          0x9d01c404      0xfcc ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookSpi.o)
+                0x9d01d1d8                SpiFifoWrite
+                0x9d01d2d4                SpiFifoRead
+ .text          0x9d01d3d0      0xe28 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookAdc.o)
+ .text          0x9d01e1f8      0xb00 ..\..\ChinookLib\ChinookLib.X\dist\default\production\ChinookLib.X.a(ChinookCan.o)
+ .text          0x9d01ecf8      0x838 build/default/production/source/Setup.o
+                0x9d01ecf8                InitTimer
+                0x9d01ede4                InitSpi
+                0x9d01ee30                InitPwm
+                0x9d01ef30                InitPorts
+                0x9d01f080                InitUart
+                0x9d01f0f0                InitSkadi
+                0x9d01f124                InitCan
+                0x9d01f17c                InitI2c
+                0x9d01f238                InitWdt
+                0x9d01f25c                InitAdc
+                0x9d01f2a8                InitInputCapture
+                0x9d01f2b0                InitDma
+                0x9d01f370                StartInterrupts
 
-.rodata         0x9d01f52c      0x7d4
- .rodata        0x9d01f52c      0x7d4 c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2/../../../../pic32mx/lib\libmchp_peripheral_32MX795F512H.a(int_tbl_lib.o)
-                0x9d01f52c                __IntSrcTbl
-                0x9d01fa48                __IntVectorTbl
+.rodata         0x9d01f530      0x7d4
+ .rodata        0x9d01f530      0x7d4 c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2/../../../../pic32mx/lib\libmchp_peripheral_32MX795F512H.a(int_tbl_lib.o)
+                0x9d01f530                __IntSrcTbl
+                0x9d01fa4c                __IntVectorTbl
 
-.text           0x9d01fd00     0x14dc
- .text          0x9d01fd00      0x4ac c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_divdi3.o)
-                0x9d01fd00                __divdi3
- .text          0x9d0201ac      0x45c c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_udivdi3.o)
-                0x9d0201ac                __udivdi3
- .text          0x9d020608      0x448 c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_umoddi3.o)
-                0x9d020608                __umoddi3
- .text          0x9d020a50      0x41c build/default/production/source/StateMachine.o
-                0x9d020a50                StateAdsConfig
-                0x9d020a60                StateAdsStandBy
-                0x9d020a70                StateDataAcq
-                0x9d020ab4                StateDevState
-                0x9d020afc                StateAdsInit
-                0x9d020ba8                StateMcuInit
-                0x9d020cf0                StateScheduler
+.text           0x9d01fd04     0x14d8
+ .text          0x9d01fd04      0x4ac c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_divdi3.o)
+                0x9d01fd04                __divdi3
+ .text          0x9d0201b0      0x45c c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_udivdi3.o)
+                0x9d0201b0                __udivdi3
+ .text          0x9d02060c      0x448 c:/program files (x86)/microchip/xc32/v1.34/bin/bin/../../lib/gcc/pic32mx/4.5.2\libgcc.a(_umoddi3.o)
+                0x9d02060c                __umoddi3
+ .text          0x9d020a54      0x418 build/default/production/source/StateMachine.o
+                0x9d020a54                StateAdsConfig
+                0x9d020a64                StateAdsStandBy
+                0x9d020a74                StateDataAcq
+                0x9d020aac                StateDevState
+                0x9d020af4                StateAdsInit
+                0x9d020ba0                StateMcuInit
+                0x9d020ce8                StateScheduler
  .text          0x9d020e6c      0x370 build/default/production/source/main.o
                 0x9d020e6c                main
 
