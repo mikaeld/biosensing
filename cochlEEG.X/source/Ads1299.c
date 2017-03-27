@@ -158,7 +158,7 @@ void initialize_ads(){
     Timer.DelayMs(40);
     resetADS(BOARD_ADS); // reset the on-board ADS registers, and stop DataContinuousMode
     Timer.DelayMs(10);
-    WREG(CONFIG1,0xB5,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 500SPS
+    WREG(CONFIG1,0xB5,BOARD_ADS); // tell on-board ADS to output its clk, set the data rate to 500SPS (default)
     Timer.DelayMs(40);
     numChannels = 8;    // expect up to 8 ADS channels
 

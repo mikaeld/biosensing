@@ -229,11 +229,11 @@ void getCommand(char token){
       case '*':
         changeChannelState_maintainRunningState(8,ACTIVATE); break;
       case 'q':
-        changeChannelState_maintainRunningState(9,DEACTIVATE); break;
+        WREG(CONFIG1,0xB6,BOARD_ADS); break; // Sampling rate is 250Hz
       case 'w':
-        changeChannelState_maintainRunningState(10,DEACTIVATE); break;
+        WREG(CONFIG1,0xB5,BOARD_ADS); break; // Sampling rate is 500Hz
       case 'e':
-        changeChannelState_maintainRunningState(11,DEACTIVATE); break;
+        WREG(CONFIG1,0xB4,BOARD_ADS); break; // Sampling rate is 1000Hz
       case 'r':
         changeChannelState_maintainRunningState(12,DEACTIVATE); break;
       case 't':

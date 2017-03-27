@@ -67,7 +67,7 @@ void InitTimer(void)
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //	Open timers
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  timerCounterValue = Timer.Open(TIMER_1, 500, SCALE_MS);   // Open Timer 1 with a period of 500 ms
+  timerCounterValue = Timer.Open(TIMER_1, 1, SCALE_MS);   // Open Timer 1 with a period of 500 ms
   if (timerCounterValue < 0)
   {
 
@@ -474,7 +474,7 @@ void InitDma(void)
 	DmaChnOpen(dmaTxChn, DMA_CHN_PRI2, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the Change Notice interrupt (DRDY pin) to start our transfer
-	DmaChnSetEventControl(dmaTxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_CHANGE_NOTICE_IRQ));
+	DmaChnSetEventControl(dmaTxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_TX_IRQ));
   
   DmaChnSetTxfer(dmaTxChn, adsSpiDummyTx, (void*)&SPI4BUF, sizeof(adsSpiDummyTx), 1, 1);
   
@@ -487,7 +487,7 @@ void InitDma(void)
 	DmaChnOpen(dmaRxChn, DMA_CHN_PRI3, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the SPI receive buffer full interrupt to start our transfer
-	DmaChnSetEventControl(dmaRxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_CHANGE_NOTICE_IRQ));
+	DmaChnSetEventControl(dmaRxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_RX_IRQ));
 
 	// set the transfer:
 	// source is the SPI buffer, dest is our memory buffer
