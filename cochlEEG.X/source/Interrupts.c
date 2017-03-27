@@ -33,8 +33,8 @@
 volatile UINT32 timeFromStartMs = 0;
 volatile BOOL   oDataAvailableFlag = FALSE;
 volatile UINT32 timeFromStart100Us = 0;
-volatile BOOL		oDmaTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
-volatile BOOL		oDmaRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile BOOL		oDmaSpiTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile BOOL		oDmaSpiRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
 volatile UINT32 timeStampUs = 0;
 
 
@@ -53,7 +53,7 @@ void __ISR(_DMA1_VECTOR, IPL5SOFT) Dma1InterruptHandler(void)
 
     if(evFlags&DMA_EV_BLOCK_DONE)
     { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
-    	oDmaTxIntFlag=1;
+    	oDmaSpiTxIntFlag=1;
       DmaChnClrEvFlags(DMA_CHANNEL1, DMA_EV_BLOCK_DONE);
     }
 //  SPI4_CS_HIGH;
@@ -70,7 +70,7 @@ void __ISR(_DMA2_VECTOR, IPL5SOFT) Dma2InterruptHandler(void)
 
     if(evFlags&DMA_EV_BLOCK_DONE)
     { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
-    	oDmaRxIntFlag=1;
+    	oDmaSpiRxIntFlag=1;
       DmaChnClrEvFlags(DMA_CHANNEL2, DMA_EV_BLOCK_DONE);
     }
   SPI4_CS_HIGH;
