@@ -355,7 +355,7 @@ void StateDevState(void)
 //===============================================================
 void StateDataAcq(void)
 {
-  LED_DEBUG1_OFF;
+//  LED_DEBUG1_OFF;
   
   // SPI transaction of Converted Data handled by DMA CHN1&2, triggered by 
   // CN Interrupt on DRDY Pin

@@ -63,7 +63,7 @@
 #endif
 
 #pragma config OSCIOFNC   = ON                    // CLKO Output Signal Active on the OSCO Pin (Enabled)
-#pragma config FPBDIV     = DIV_2                 // Peripheral Clock Divisor (Pb_Clk is Sys_Clk/8)
+#pragma config FPBDIV     = DIV_2                 // Peripheral Clock Divisor (Pb_Clk is Sys_Clk/2)
 #pragma config FCKSM      = CSDCMD                // Clock Switching and Monitor Selection (Clock Switch Disable, FSCM Disabled)
 #pragma config WDTPS      = PS1048576             // Watchdog Timer Postscaler (1:1048576)
 #pragma config FWDTEN     = OFF                   // Watchdog Timer Enable (WDT Disabled (SWDTEN Bit Controls))

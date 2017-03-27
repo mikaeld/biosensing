@@ -23,6 +23,7 @@
 #include "../headers/Ads1299.h"
 #include "../headers/Setup.h"
 #include "../headers/StateFunctions.h"
+#include <plib.h>
 
 
 //==============================================================================
@@ -42,6 +43,7 @@ extern volatile UINT32 timeFromStart100Us;
 extern volatile UINT32 timeStampUs;
 sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
 extern BYTE adsDataConversion[27];
+extern DmaChannel    dmaUartTxChn;
 
 
 //==============================================================================
@@ -74,12 +76,6 @@ void printAllRegisters(){
 void startStreaming(){  // needs daisy functionality
   startADS(); 
 } 
-
-void sendChannelData(){
-  
-  ADS_writeChannelData();       // 24 bytes  
-
-}
 
 void stopStreaming(){
   stopADS();  
@@ -756,7 +752,7 @@ void stopADS()
 
 
 //write as binary each channel's data
-void ADS_writeChannelData() 
+void sendChannelData() 
 { 
   AdsPacket.length = 40; 
   uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
@@ -776,12 +772,14 @@ void ADS_writeChannelData()
   memcpy(&AdsPacket.buffer[12], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
   memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
     
-  INT32 err = 0;
-  do
-  {
-    err = Uart.PutTxFifoBuffer(UART4, &AdsPacket);
-  }
-  while ( err < 0);
+//  INT32 err = 0;
+//  do
+//  {
+//    err = Uart.PutTxFifoBuffer(UART4, &AdsPacket);
+//  }
+//  while ( err < 0);
+  Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
+//  DmaChnStartTxfer(dmaUartTxChn, DMA_WAIT_NOT, 0);	// force the DMA transfer: the UART2 tx flag it's already been active
   
   PacketCounter++;
 }
