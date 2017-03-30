@@ -1,21 +1,24 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// cochlEEG - CRITIAS ETSMTL
+// Chinook Project Template
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// File    : Ads1299.h       
-// Author  : Mikael Ducharme
-// Date    : 2016-01-26
+// File    : HeaderTemplate.h
+// Author  : Frederic Chasse
+// Date    : 2015-01-03
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Purpose : Contains functions related to the control and management of 
-//           ADS1299 analog to digital front end. This library is based on
-//           OpenBCI library.
+// Purpose : This is a template header file that every developper should use as
+//           a starter when developping code.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+//
+// Notes   : Function names can and should be renamed by the user to improve the
+//           readability of the code.
+//
+//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
 #ifndef __ADS1299_H__
