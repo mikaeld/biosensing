@@ -13,11 +13,6 @@
 // Purpose : This is the C file for the state machine of the system.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-// Notes   : State names can and should be renamed by the user to improve the
-//           readability of the code.
-//
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 #include "..\headers\StateMachine.h"
 #include "..\headers\Interrupts.h"
@@ -202,52 +197,22 @@ void StateMcuInit(void)
   LED_CAN_OFF;
   
   INIT_UART;
-  err = PrintToUart(UART4,"\f"  // Clear terminal
-    "CochlEEG V1.0 - CRITIAS ECOLE DE TECHNOLOGIE SUPERIEURE \r\n"
-    "\tSoftware version 1.0\r\n"
-    "Developped by MIKAEL DUCHARME\r\n");   
-  err = PrintToUart(UART4,
-    "*** PIC32MX795F512H initialization routine ***\r\n"
-    "PORTS Init - DONE\r\n"
-    "UART Init - DONE\r\n");
-  
-  INIT_SPI;
-  err = PrintToUart(UART4,"SPI Init - DONE\r\n");
-  
+    INIT_SPI;
 //  INIT_WDT;
-//  err = PrintToUart(UART4,"WDT Init - DONE\r\n");
-  
   INIT_TIMER;
-  err = PrintToUart(UART4,"TIMER Init - DONE\r\n");
-  
 //  INIT_INPUT_CAPTURE;
-//  err = PrintToUart(UART4,"INPUTCAPTURE Init - DONE\r\n");
-  
 //  INIT_PWM;
-//  err = PrintToUart(UART4,"PWM Init - DONE\r\n");
-  
 //  INIT_ADC;
-//  err = PrintToUart(UART4,"ADC Init - DONE\r\n");
-  
 //  INIT_SKADI;
-//  err = PrintToUart(UART4,"SKADI Init - DONE\r\n");
-  
 //  INIT_CAN;
-//  err = PrintToUart(UART4,"CAN Init - DONE\r\n");
-  
 //  INIT_I2C;
-//  err = PrintToUart(UART4,"I2C Init - DONE\r\n");
-  
   INIT_DMA;
   
   START_INTERRUPTS;
-  err = PrintToUart(UART4,"INTERRUPTS STARTED*\r\n");
-  
   LED_CHARGE_ON;
   Timer.DelayMs(100);
   LED_CHARGE_OFF;
   err = PrintToUart(UART4,"*** PIC32MX795F512H initialization routine COMPLETED ***\r\n");
-  
   oMcuInitFlag = 1; // MCU INIT STATE COMPLETED
 }
 

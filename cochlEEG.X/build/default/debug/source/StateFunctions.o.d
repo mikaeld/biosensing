@@ -1,6 +1,6 @@
-build/default/production/source/SkadiFunctions.o:  \
-source/SkadiFunctions.c  \
- source/../headers/SkadiFunctions.h  \
+build/default/debug/source/StateFunctions.o:  \
+source/StateFunctions.c  \
+ source/../headers/StateFunctions.h  \
 source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers/ChinookLib.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookHardwareProfile.h  \
@@ -17,4 +17,6 @@ source/../headers//Setup.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookSpi.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookTimer.h  \
  source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookUart.h  \
- source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h 
+ source/../headers//../../../ChinookLib/ChinookLib.X/headers//ChinookWdt.h  \
+ source/../headers/Ads1299.h  \
+source/../headers/Interrupts.h 

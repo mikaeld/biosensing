@@ -14,11 +14,7 @@
 //           the system.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-// Notes   : Function names can and should be renamed by the user to improve the
-//           readability of the code.
-//
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 #include "..\headers\StateFunctions.h"
 #include "..\headers\Ads1299.h"
@@ -330,38 +326,19 @@ void getCommand(char token){
 
 // STREAM DATA AND FILTER COMMANDS
       case 'b':  // stream data
-//        if(SDfileOpen) stampSD(ACTIVATE);                     // time stamp the start time
-//        if(useAccel){enable_accel(RATE_25HZ);}      // fire up the accelerometer if you want it
         startRunning(outputType);       // turn on the fire hose
         break;
      case 's':  // stop streaming data
-//        if(SDfileOpen) stampSD(DEACTIVATE);       // time stamp the stop time
-//        if(useAccel){disable_accel();}  // shut down the accelerometer if you're using it
         stopRunning();
         break;
-      case 'f':
-//         useFilters = TRUE;
-         break;
-      case 'g':
-//         useFilters = FALSE;
-         break;
-
 //  INITIALIZE AND VERIFY
       case 'v':
          startFromScratch();
          break;
-//  QUERY THE ADS AND ACCEL REGITSTERS
-     case '?':
-        printRegisters();
-        break;
      default:
        break;
      }
   }// end of getCommand
-
-void sendEOT(){
-  PrintToUart(UART4, "$$$");
-}
 
 void loadChannelSettings(char c){
 
@@ -527,7 +504,6 @@ void sendDefaultChannelSettings(){
   int cur_outputType = outputType;
 
   reportDefaultChannelSettings();
-  sendEOT();
   Timer.DelayMs(10);
 
   //restart, if it was running before
@@ -553,17 +529,6 @@ BOOL startRunning(int OUT_TYPE) {
     return is_running;
 }
 
-void printRegisters(){
-
-  if(!is_running){
-    // print the ADS and LIS3DH registers
-    printAllRegisters();
-    sendEOT();
-    Timer.DelayMs(20);
-  }
-
-}
-
 void startFromScratch(){
   if(!is_running){
     initialize_ads();
@@ -571,7 +536,6 @@ void startFromScratch(){
     PrintlnToUart(UART4, "CochlEEG - CRITIAS ETS/r/n");
     configureLeadOffDetection(LOFF_MAG_6NA, LOFF_FREQ_31p2HZ);
     PrintToUart(UART4, "On Board ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_BOARD)); PrintlnToUart(UART4, " ");
-    sendEOT();
   }
 }
 

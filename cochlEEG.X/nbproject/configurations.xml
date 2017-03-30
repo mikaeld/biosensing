@@ -9,7 +9,6 @@
       <itemPath>headers/Interrupts.h</itemPath>
       <itemPath>headers/StateFunctions.h</itemPath>
       <itemPath>headers/HardwareProfile.h</itemPath>
-      <itemPath>headers/SkadiFunctions.h</itemPath>
       <itemPath>headers/Ads1299.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
@@ -24,7 +23,6 @@
       <itemPath>source/Interrupts.c</itemPath>
       <itemPath>source/Setup.c</itemPath>
       <itemPath>source/StateFunctions.c</itemPath>
-      <itemPath>source/SkadiFunctions.c</itemPath>
       <itemPath>source/Ads1299.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"

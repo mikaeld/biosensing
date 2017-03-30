@@ -1,6 +1,6 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// cochlEEG
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
@@ -14,9 +14,7 @@
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Notes   : All priorities must be set and verified by the developper. All
-//           priorities and subpriorities used are there as example. Also, note
-//           that interrupt can be defined as iplnauto, iplnsrs and iplnsoft,
+// Notes   : Interrupts can be defined as iplnauto, iplnsrs and iplnsoft,
 //           where n can be from 0 to 7. 7 is the highest priority, while 1 is
 //           the lowest. A priority of 0 will disable the interrupt.
 //           Subpriorities can go from (lowest to highest) 0 to 3.
@@ -32,7 +30,7 @@
 //==============================================================================
 volatile UINT32 timeFromStartMs = 0;
 volatile BOOL   oDataAvailableFlag = FALSE;
-volatile UINT32 timeFromStart100Us = 0;
+volatile UINT32 timeFromStart10Us = 0;
 volatile BOOL		oDmaSpiTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
 volatile BOOL		oDmaSpiRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
 volatile BOOL   oDmaUartTxIntFlag = 0;  
@@ -106,7 +104,7 @@ void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
     DmaChnStartTxfer(DMA_CHANNEL1,DMA_WAIT_NOT,0);
     DmaChnEnable(DMA_CHANNEL2); 
     oDataAvailableFlag = TRUE;
-    timeStampUs = timeFromStart100Us * 100;
+    timeStampUs = timeFromStart10Us * 10;
     LED_EEGACQ_TOGGLE;
   }
   else
@@ -169,7 +167,7 @@ void __ISR(_TIMER_3_VECTOR, T3_INTERRUPT_PRIORITY) Timer3InterruptHandler(void)
 //=============================================
 void __ISR(_TIMER_4_VECTOR, T4_INTERRUPT_PRIORITY) Timer4InterruptHandler(void)
 {
-  timeFromStart100Us++;
+  timeFromStart10Us++;
   // Increment the number of overflows from this timer. Used primarily by Input Capture
   Timer.Var.nOverflows[3]++;
 

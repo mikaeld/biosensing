@@ -1,22 +1,18 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Chinook Project Template
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// File    : SourceTemplate.c
-// Author  : Frederic Chasse
-// Date    : 2015-01-03
+// File    : Ads1299.c       
+// Author  : Mikael Ducharme
+// Date    : 2016-01-26
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Purpose : This is a template header file that every developper should use as
-//           a starter when developping code.
-//
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//
-// Notes   : Function names can and should be renamed by the user to improve the
-//           readability of the code.
+// Purpose : Contains functions related to the control and management of 
+//           ADS1299 analog to digital front end. This library is based on
+//           OpenBCI library.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -39,7 +35,6 @@ UINT32 PacketCounter = 0;
 BYTE count_byte[4] = {0};
 BYTE timeStamp_byte[4] = {0};
 BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
-extern volatile UINT32 timeFromStart100Us;
 extern volatile UINT32 timeStampUs;
 sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
 extern BYTE adsDataConversion[27];
@@ -49,29 +44,6 @@ extern DmaChannel    dmaUartTxChn;
 //==============================================================================
 // Functions
 //==============================================================================
-
-//print out the state of all the control registers
-
-void printADSregisters(int targetSS)   
-{
-    BOOL prevverbosityState = verbosity;
-    verbosity = TRUE;						// set up for verbosity output
-    RREGS(0x00,0x0C,targetSS);     	// read out the first registers
-    Timer.DelayMs(10);  						// stall to let all that data get read by the PC
-    RREGS(0x0D,0x17-0x0D,targetSS);	// read out the rest
-    verbosity = prevverbosityState;
-}
-
-void printAllRegisters(){
-  if(!isRunning){
-    PrintlnToUart(UART4,"\nBoard ADS Registers");
-    printADSregisters(BOARD_ADS);  
-    if(daisyPresent){ 
-      PrintlnToUart(UART4,"\nDaisy ADS Registers");
-      printADSregisters(DAISY_ADS); 
-    }
-  }
-}
 
 void startStreaming(){  // needs daisy functionality
   startADS(); 
@@ -226,7 +198,6 @@ void setChannelsToDefault(void){
 
   
   WREG(MISC1,0x00,BOARD_ADS);  // open SRB1 switch on-board
-  if(daisyPresent){ WREG(MISC1,0x00,DAISY_ADS); } // open SRB1 switch on-daisy
 }
 
 
@@ -651,95 +622,6 @@ BOOL isDataAvailable(void)
   return (!(Port.B.ReadBits(BIT_13)));
 }
   
-// CALLED WHEN DRDY PIN IS ASSERTED. NEW ADS DATA AVAILABLE!
-void updateChannelData(){ 
-  updateBoardData();
-//  if(daisyPresent) {updateDaisyData();}
-}
-
-void updateBoardData(){
-  BYTE inByte;
-  int ByteCounter = 0;
-  int i;
-
-  SPI4_CS_LOW;       //  open SPI
-  for(i=0; i<3; i++){ 
-    inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
-    boardStat = (boardStat << 8) | inByte;
-  }
-  for(i = 0; i<8; i++){
-    int j;
-    for(j=0; j<3; j++){   //  read 24 bits of channel data in 8 3 BYTE chunks
-      inByte = xfer(0x00);
-      boardChannelDataRaw[ByteCounter] = inByte;  // raw data goes here
-      ByteCounter++;
-//      boardChannelDataInt[i] = (boardChannelDataInt[i]<<8) | inByte;  // int data goes here
-    }
-  }
-  SPI4_CS_HIGH;        //  close SPI
-  // need to convert 24bit to 32bit if using the filter
-//  for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-//    if(BITREAD(boardChannelDataInt[i],23) == 1){ 
-//      boardChannelDataInt[i] |= 0xFF000000;
-//    }else{
-//      boardChannelDataInt[i] &= 0x00FFFFFF;
-//    }
-//  }
-  timeStampUs = timeFromStart100Us * 100;
-  if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
-}
-
-void updateDaisyData(){
-    BYTE inByte;
-    int ByteCounter = 0;
-    int i;
-    
-    if(daisyPresent && !firstDataPacket){
-      for(i=0; i<8; i++){  // shift and average the BYTE arrays
-        lastDaisyChannelDataInt[i] = daisyChannelDataInt[i]; // remember the last samples
-      }
-    }
-
-    csLow(DAISY_ADS);       //  open SPI
-    for(i=0; i<3; i++){ 
-      inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
-      daisyStat = (daisyStat << 8) | inByte;
-    }
-    for(i = 0; i<8; i++){
-      int j;
-      for(j=0; j<3; j++){   //  read 24 bits of channel data in 8 3 BYTE chunks
-        inByte = xfer(0x00);
-        daisyChannelDataRaw[ByteCounter] = inByte;  // raw data goes here
-        ByteCounter++;
-        daisyChannelDataInt[i] = (daisyChannelDataInt[i]<<8) | inByte; // int data goes here
-      }
-    }
-    csHigh(DAISY_ADS);        //  close SPI
-  // need to convert 24bit to 32bit
-    for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-    if(BITREAD(daisyChannelDataInt[i],23) == 1){ 
-      daisyChannelDataInt[i] |= 0xFF000000;
-    }else{
-      daisyChannelDataInt[i] &= 0x00FFFFFF;
-    }
-  }
-  if(daisyPresent && !firstDataPacket){
-    ByteCounter = 0;
-    for(i=0; i<8; i++){   // average this sample with the last sample
-      meanDaisyChannelDataInt[i] = (lastDaisyChannelDataInt[i] + daisyChannelDataInt[i])/2;
-    }
-    for(i=0; i<8; i++){  // place the average values in the meanRaw array
-      int b;
-      for(b=2; b>=0; b--){
-        meanDaisyDataRaw[ByteCounter] = (meanDaisyChannelDataInt[i] >> (b*8)) & 0xFF;
-        ByteCounter++;
-      }
-    }   
-  }  
-    
-  if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
-}
-
 // Stop the continuous data acquisition
 void stopADS()  
 {
@@ -866,21 +748,6 @@ void RDATA(int targetSS) {          //  use in Stop Read Continuous mode when DR
         boardChannelDataInt[i] |= 0xFF000000;
       }else{
         boardChannelDataInt[i] &= 0x00FFFFFF;
-      }
-    }
-  }else{
-    for(i = 0; i<8; i++){
-      int j;
-      for(j=0; j<3; j++){   //  read in the new channel data
-        inByte = xfer(0x00);
-        daisyChannelDataInt[i] = (daisyChannelDataInt[i]<<8) | inByte;
-      }
-    }
-    for(i=0; i<8; i++){
-      if(BITREAD(daisyChannelDataInt[i],23) == 1){  // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment
-        daisyChannelDataInt[i] |= 0xFF000000;
-      }else{
-        daisyChannelDataInt[i] &= 0x00FFFFFF;
       }
     }
   }

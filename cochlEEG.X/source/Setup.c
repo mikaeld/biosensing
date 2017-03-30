@@ -44,17 +44,6 @@ BYTE adsDataConversion[27] = {0};     // Buffer for data conversions
 BYTE adsSpiDummyTx[27] = {0};   // Dummy data to send to ADS1299 during data conversion (SPI transaction)
 
 
-/***********************************
- * Table of functions used in Skadi
- **********************************/
-sSkadiCommand_t skadiCommandTable[] =
-{
-   {"LedDebug"    , LedDebug    , 1, "Usage : flash Led DEBUG"}   // 1 argument
-  ,{"LedCan"      , LedCan      , 1, "Usage : flash Led CAN"}     // 1 argument
-  ,{"ReInitSystem", ReInitSystem, 0, "Redo StateInit()"}          // 0 argument
-};
-
-
 //==============================================================================
 //	INIT FUNCTIONS
 //==============================================================================
@@ -86,7 +75,7 @@ void InitTimer(void)
   {
 
   }
-  timerCounterValue = Timer.Open(TIMER_4, 100, SCALE_US);   // Open Timer 4 with a period of 1000 ns (Used for frame timestamp)
+  timerCounterValue = Timer.Open(TIMER_4, 10, SCALE_US);   // Open Timer 4 with a period of 10 us (Used for frame timestamp)
   if (timerCounterValue < 0)
   {
 
@@ -312,17 +301,6 @@ void InitUart (void)
 //  Uart.ConfigInterrupt(UART5, UART5_INTERRUPT_PRIORITY, UART5_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART6, UART6_INTERRUPT_PRIORITY, UART6_INTERRUPT_SUBPRIORITY);
 }
-
-
-//===========================
-//	INIT SKADI
-//===========================
-void InitSkadi(void)
-{
-//  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, FALSE);   // This system does not use UART interrupts
-  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART4, TRUE);   // This system uses UART interrupts
-}
-
 
 //===========================
 //	INIT CAN BUS

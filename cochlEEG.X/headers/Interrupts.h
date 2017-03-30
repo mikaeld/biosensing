@@ -14,9 +14,7 @@
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Notes   : All priorities must be set and verified by the developper. All
-//           priorities and subpriorities used are there as example. Also, note
-//           that interrupt can be defined as iplnauto, iplnsrs and iplnsoft,
+// Notes   : Interrupts can be defined as iplnauto, iplnsrs and iplnsoft,
 //           where n can be from 0 to 7. 7 is the highest priority, while 1 is
 //           the lowest. A priority of 0 will disable the interrupt.
 //           Subpriorities can go from (lowest to highest) 0 to 3.
