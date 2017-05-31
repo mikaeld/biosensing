@@ -1,22 +1,23 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Chinook Project Template
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// File    : SourceTemplate.c
-// Author  : Frederic Chasse
-// Date    : 2015-01-03
+// File    : Ads1299.c
+// Author  : Mikael Ducharme
+// Date    : 2016-01-28
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Purpose : This is a template header file that every developper should use as
-//           a starter when developping code.
+// Purpose : This file declares all interrupt subroutines used.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Notes   : Function names can and should be renamed by the user to improve the
-//           readability of the code.
+// Notes   : Library is adapted from openBCI, as this device was supposed to be 
+//           openBCI compatible. However openBCI compatibility was dropped due
+//           to performance limitations of openBCI. Daisy chain support is 
+//           not implemented.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -43,11 +44,9 @@ extern volatile UINT32 timeFromStart100Us;
 extern volatile UINT32 timeStampUs;
 sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
 extern BYTE adsDataConversion[27];
-extern DmaChannel    dmaUartTxChn;
-
 
 //==============================================================================
-// Functions
+// Board Functions
 //==============================================================================
 
 //print out the state of all the control registers
@@ -73,7 +72,7 @@ void printAllRegisters(){
   }
 }
 
-void startStreaming(){  // needs daisy functionality
+void startStreaming(){  
   startADS(); 
 } 
 
@@ -81,7 +80,9 @@ void stopStreaming(){
   stopADS();  
 }
 
-//SPI communication method
+//SPI communication method, used only for device configuration
+//SPI communicaton for data conversions is done with DMA and triggered by 
+//Change notice interrupt on DRDY pin
 BYTE xfer(BYTE _data) 
 {
     BYTE inByte;
@@ -98,16 +99,8 @@ void csLow(int SS)
     case BOARD_ADS:
       SPI4_CS_LOW;
       break;
-//    case LIS3DH_SS:
-//      spi.setMode(DSPI_MODE3); spi.setSpeed(4000000); digitalWrite(LIS3DH_SS, LOW); break;
-//    case SD_SS:
-//      spi.setMode(DSPI_MODE0); spi.setSpeed(20000000); digitalWrite(SD_SS, LOW); break;
-//    case DAISY_ADS:
-//      spi.setMode(DSPI_MODE1); spi.setSpeed(4000000); digitalWrite(DAISY_ADS, LOW); break;  
     case BOTH_ADS:
       SPI4_CS_LOW;
-//      spi.setMode(DSPI_MODE1); spi.setSpeed(4000000);
-//      digitalWrite(BOARD_ADS,LOW); digitalWrite(DAISY_ADS,LOW); 
       break;
     default: break;
   }
@@ -119,25 +112,17 @@ void csHigh(int SS)
     case BOARD_ADS:
       SPI4_CS_HIGH; 
       break;
-//    case LIS3DH_SS:
-//      digitalWrite(LIS3DH_SS, HIGH); spi.setSpeed(20000000); break;
-//    case SD_SS:
-//      digitalWrite(SD_SS, HIGH); spi.setSpeed(4000000); break;
-//    case DAISY_ADS:
-//      digitalWrite(DAISY_ADS, HIGH); spi.setSpeed(20000000); break;  
     case BOTH_ADS:
       SPI4_CS_HIGH;
-//      digitalWrite(BOARD_ADS, HIGH); digitalWrite(DAISY_ADS, HIGH);
-//      spi.setSpeed(20000000); 
       break;
     default:
       break;
   }
 }
 
-// <<<<<<<<<<<<<<<<<<<<<<<<<  END OF BOARD WIDE FUNCTIONS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-// *************************************************************************************
-// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<  ADS1299 FUNCTIONS >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+//==============================================================================
+// ADS1299 Functions
+//==============================================================================
 
 
 void initialize_ads(){
@@ -779,8 +764,6 @@ void sendChannelData()
 //  }
 //  while ( err < 0);
   Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
-//  DmaChnStartTxfer(dmaUartTxChn, DMA_WAIT_NOT, 0);	// force the DMA transfer: the UART2 tx flag it's already been active
-  
   PacketCounter++;
 }
 

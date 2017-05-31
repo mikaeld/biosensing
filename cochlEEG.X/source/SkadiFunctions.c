@@ -4,7 +4,7 @@
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// File    : SourceTemplate.c
+// File    : SkadiFunctions.c
 // Author  : Mikael Ducharme
 // Date    : 2016-01-28
 //
@@ -14,9 +14,7 @@
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Notes   : Function names can and should be renamed by the user to improve the
-//           readability of the code. User must set the functions here and adjust
-//           the structure skadiCommandTable located in Setup.c.
+// Notes   : Skadi library is not implemented. Ignore this file
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

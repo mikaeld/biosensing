@@ -1,12 +1,12 @@
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Chinook Project Template
+// cochlEEG - CRITIAS ETSMTL
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// File    : HeaderTemplate.h
-// Author  : Frederic Chasse
-// Date    : 2015-01-03
+// File    : Ads1299.h
+// Author  : Mikael Ducharme
+// Date    : 2016-01-28
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
@@ -15,8 +15,10 @@
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //
-// Notes   : Function names can and should be renamed by the user to improve the
-//           readability of the code.
+// Notes   : Library is adapted from openBCI, as this device was supposed to be 
+//           openBCI compatible. However openBCI compatibility was dropped due
+//           to performance limitations of openBCI. Daisy chain support is 
+//           not implemented.
 //
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -108,7 +110,7 @@ void writeAuxData(void);
 //  Created by Conor Russomanno, Luke Travis, and Joel Murphy. Summer 2013.
 //	Modified by Joel Murphy, Summer 2014
 //	Joel Added Daisy Functionality Fall 2014
-//
+//  Adapted to cochlEEG by Mikael Ducharme, Winter 2016
 
 #define BOARD_ADS	8 	// ADS chip select
 #define DAISY_ADS	3   // ADS Daisy chip select
@@ -313,18 +315,6 @@ BOOL useAux;
 BOOL useAccel;
 
 BYTE sampleCounter;
-
-/***********************************
- * Template structure
- **********************************/
-
-/***********************************
- * Template global variable
- **********************************/
-
-/***********************************
- * Global struct
- **********************************/
 
 #endif	/* __ADS1299_H__ */
 

@@ -38,7 +38,6 @@ extern sUartLineBuffer_t AdsPacket;
 DmaChannel		dmaSpiTxChn = DMA_CHANNEL1;	// DMA channel to use for our example
   // NOTE: the DMA ISR setting has to match the channel number
 DmaChannel    dmaSpiRxChn = DMA_CHANNEL2;
-DmaChannel    dmaUartTxChn = DMA_CHANNEL3;
 
 BYTE adsDataConversion[27] = {0};     // Buffer for data conversions
 BYTE adsSpiDummyTx[27] = {0};   // Dummy data to send to ADS1299 during data conversion (SPI transaction)
@@ -499,21 +498,7 @@ void InitDma(void)
 	// cell size is one byte: we want one byte to be sent per each SPI RXBF event
 	DmaChnSetTxfer(dmaSpiRxChn, (void*)&SPI4BUF, adsDataConversion, 1, sizeof(adsDataConversion), 1);
 
-	DmaChnSetEvEnableFlags(dmaSpiRxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred
-  
-  /**********************************************/
-  /***     Configure UART Tx DMA Channel      ***/
-  /**********************************************/
-  DmaChnOpen(dmaUartTxChn, DMA_CHN_PRI2, DMA_OPEN_DEFAULT); //DMA_OPEN_DEFAULTS????
-  
-  DmaChnSetEventControl(dmaUartTxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_UART4_TX_IRQ));
-  
-  // set the transfer source and dest addresses, source and dest size and cell size
-  DmaChnSetTxfer(dmaUartTxChn, AdsPacket.buffer, (void*)&U4TXREG, 40,1,1); 
-  
-  // enable the transfer done interrupt: pattern match or all the characters transferred
-  DmaChnSetEvEnableFlags(dmaUartTxChn, DMA_EV_BLOCK_DONE);
-  
+	DmaChnSetEvEnableFlags(dmaSpiRxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred  
 }
 
 //===========================
@@ -536,11 +521,6 @@ void StartInterrupts(void)
 	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaSpiRxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
   INTEnable(INT_SOURCE_DMA(dmaSpiRxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
 	oDmaSpiRxIntFlag = 0;			// clear the interrupt flag we're  waiting on
-  
-  INTSetVectorPriority(INT_VECTOR_DMA(dmaUartTxChn), INT_PRIORITY_LEVEL_6);		// set INT controller priority
-	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaUartTxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
-	INTEnable(INT_SOURCE_DMA(dmaUartTxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
-	oDmaUartTxIntFlag = 0;			// clear the interrupt flag we're  waiting on   
   
   
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
