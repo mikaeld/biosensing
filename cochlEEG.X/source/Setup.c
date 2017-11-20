@@ -145,7 +145,7 @@ void InitSpi(void)
 //  {
 //    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
 //  }
-  err = Spi.Open(SPI4, oMasterFlags, 1e7);   // Open the SPI4 as a master at a bitrate of 10 MHz
+  err = Spi.Open(SPI4, oMasterFlags, 10e6);   // Open the SPI4 as a master at a bitrate of 10 MHz
   if (err < 0)                // Check for errors
   {
     LED_ERROR_ON;    // Turn on the LED_ERROR
