@@ -26,6 +26,9 @@
 #include "../headers/StateFunctions.h"
 #include <plib.h>
 
+#define SHORT_PACKET 1 // if 1 : | Header 4 bytes | Framecount 4 bytes | Payload 24 bytes | 
+                       // if 0 : | Header 4 bytes | Timestamp 4 bytes | Framecount 4 bytes | Payload 24 bytes | CRC 4 bytes |
+
 
 //==============================================================================
 // Private functions prototypes
@@ -36,6 +39,7 @@
 // Variable definitions
 //==============================================================================
 BYTE sync_byte[4] = {0xAA, 0xBB, 0XCC, 0XDD};
+BYTE sync_byte_short[2] = {0xAA, 0xBB};
 UINT32 PacketCounter = 0;
 BYTE count_byte[4] = {0};
 BYTE timeStamp_byte[4] = {0};
@@ -739,32 +743,43 @@ void stopADS()
 //write as binary each channel's data
 void sendChannelData() 
 { 
-  AdsPacket.length = 40; 
-  uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
-  uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
-  
-  memcpy(&AdsPacket.buffer[0], sync_byte, 4);            // Copy sync code to AdsPacket
-  AdsPacket.buffer[4] = count_byte[3];         // Rearranging from little endian to big endian
-  AdsPacket.buffer[5] = count_byte[2];
-  AdsPacket.buffer[6] = count_byte[1];
-  AdsPacket.buffer[7] = count_byte[0];
-  
-  AdsPacket.buffer[8] = timeStamp_byte[3];     // Rearranging from little endian to big endian
-  AdsPacket.buffer[9] = timeStamp_byte[2];
-  AdsPacket.buffer[10] = timeStamp_byte[1];
-  AdsPacket.buffer[11] = timeStamp_byte[0];
-  
-  memcpy(&AdsPacket.buffer[12], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
-  memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
+  #if SHORT_PACKET == 0
+    AdsPacket.length = 40; 
+    uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
+    uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
+
+    memcpy(&AdsPacket.buffer[0], sync_byte, 4);            // Copy sync code to AdsPacket
+    AdsPacket.buffer[4] = count_byte[3];         // Rearranging from little endian to big endian
+    AdsPacket.buffer[5] = count_byte[2];
+    AdsPacket.buffer[6] = count_byte[1];
+    AdsPacket.buffer[7] = count_byte[0];
+
+    AdsPacket.buffer[8] = timeStamp_byte[3];     // Rearranging from little endian to big endian
+    AdsPacket.buffer[9] = timeStamp_byte[2];
+    AdsPacket.buffer[10] = timeStamp_byte[1];
+    AdsPacket.buffer[11] = timeStamp_byte[0];
+
+    memcpy(&AdsPacket.buffer[12], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
+    memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
+
+    Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
+    PacketCounter++;
     
-//  INT32 err = 0;
-//  do
-//  {
-//    err = Uart.PutTxFifoBuffer(UART4, &AdsPacket);
-//  }
-//  while ( err < 0);
-  Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
-  PacketCounter++;
+  #elif SHORT_PACKET == 1
+    AdsPacket.length = 30; 
+    uint2Bytes(PacketCounter,&count_byte[0]);          // Converting UINT32 PacketCounter to byte array
+
+    memcpy(&AdsPacket.buffer[0], sync_byte_short, 2);  // Copy sync code to AdsPacket
+    AdsPacket.buffer[2] = count_byte[3];               // Rearranging from little endian to big endian
+    AdsPacket.buffer[3] = count_byte[2];
+    AdsPacket.buffer[4] = count_byte[1];
+    AdsPacket.buffer[5] = count_byte[0];
+
+    memcpy(&AdsPacket.buffer[6], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
+
+    Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
+    PacketCounter++;
+  #endif
 }
 
 

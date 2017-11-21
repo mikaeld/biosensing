@@ -474,7 +474,7 @@ void InitDma(void)
   /**********************************************/
   
   // open and configure the DMA channel.
-	DmaChnOpen(dmaSpiTxChn, DMA_CHN_PRI2, DMA_OPEN_DEFAULT);
+	DmaChnOpen(dmaSpiTxChn, DMA_CHN_PRI0, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the Change Notice interrupt (DRDY pin) to start our transfer
 	DmaChnSetEventControl(dmaSpiTxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_TX_IRQ));
@@ -487,7 +487,7 @@ void InitDma(void)
   /***      Configure SPI Rx DMA Channel      ***/
   /**********************************************/
   // open and configure the DMA channel.
-	DmaChnOpen(dmaSpiRxChn, DMA_CHN_PRI3, DMA_OPEN_DEFAULT);
+	DmaChnOpen(dmaSpiRxChn, DMA_CHN_PRI1, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the SPI receive buffer full interrupt to start our transfer
 	DmaChnSetEventControl(dmaSpiRxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_RX_IRQ));
