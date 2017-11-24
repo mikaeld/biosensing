@@ -35,8 +35,6 @@
 // VARIABLE DECLARATIONS
 //==============================================================================
 
-//extern volatile INT32 oFlagMainWhile;
-//extern volatile INT32 oFlagTenMillis;
 
 //==============================================================================
 // MAIN CODE

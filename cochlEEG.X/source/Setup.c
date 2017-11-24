@@ -33,7 +33,6 @@
 extern volatile BOOL oDmaSpiTxIntFlag;
 extern volatile BOOL oDmaSpiRxIntFlag;
 extern volatile BOOL oDmaUartTxIntFlag;
-extern sUartLineBuffer_t AdsPacket;
 
   // NOTE: the DMA ISR setting has to match the channel number
 DmaChannel		dmaSpiTxChn   = DMA_CHANNEL1;
@@ -41,7 +40,7 @@ DmaChannel    dmaSpiRxChn   = DMA_CHANNEL2;
 DmaChannel    dmaUartTxChn  = DMA_CHANNEL3;
 
 BYTE adsSpiDummyTx[27] = {0};   // Dummy data to send to ADS1299 during data conversion (SPI transaction)
-
+sUartLineBuffer_t AdsPacket = {0}; //Uart buffer 
 
 
 
@@ -126,30 +125,30 @@ void InitSpi(void)
 void InitPwm(void)
 {
 
-  // Open PWM1 using Timer3 with 50% duty cycle and 0% offset
-  Pwm.Open(PWM_1);
-  Pwm.SetDutyCycle  (PWM_1, 50);
-  Pwm.SetPulseOffset(PWM_1,  0);
-
-  // Open PWM2 using Timer3 with 50% duty cycle and 0% offset
-  Pwm.Open(PWM_2);
-  Pwm.SetDutyCycle  (PWM_2, 50);
-  Pwm.SetPulseOffset(PWM_2,  0);
-
-  // Open PWM3 using Timer3 with 50% duty cycle and 0% offset
-  Pwm.Open(PWM_3);
-  Pwm.SetDutyCycle  (PWM_3, 50);
-  Pwm.SetPulseOffset(PWM_3,  0);
-
-  // Open PWM4 using Timer3 with 50% duty cycle and 0% offset
-  Pwm.Open(PWM_4);
-  Pwm.SetDutyCycle  (PWM_4, 50);
-  Pwm.SetPulseOffset(PWM_4,  0);
-
-  // Open PWM5 using Timer3 with 50% duty cycle and 0% offset
-  Pwm.Open(PWM_5);
-  Pwm.SetDutyCycle  (PWM_5, 50);
-  Pwm.SetPulseOffset(PWM_5,  0);
+//  // Open PWM1 using Timer3 with 50% duty cycle and 0% offset
+//  Pwm.Open(PWM_1);
+//  Pwm.SetDutyCycle  (PWM_1, 50);
+//  Pwm.SetPulseOffset(PWM_1,  0);
+//
+//  // Open PWM2 using Timer3 with 50% duty cycle and 0% offset
+//  Pwm.Open(PWM_2);
+//  Pwm.SetDutyCycle  (PWM_2, 50);
+//  Pwm.SetPulseOffset(PWM_2,  0);
+//
+//  // Open PWM3 using Timer3 with 50% duty cycle and 0% offset
+//  Pwm.Open(PWM_3);
+//  Pwm.SetDutyCycle  (PWM_3, 50);
+//  Pwm.SetPulseOffset(PWM_3,  0);
+//
+//  // Open PWM4 using Timer3 with 50% duty cycle and 0% offset
+//  Pwm.Open(PWM_4);
+//  Pwm.SetDutyCycle  (PWM_4, 50);
+//  Pwm.SetPulseOffset(PWM_4,  0);
+//
+//  // Open PWM5 using Timer3 with 50% duty cycle and 0% offset
+//  Pwm.Open(PWM_5);
+//  Pwm.SetDutyCycle  (PWM_5, 50);
+//  Pwm.SetPulseOffset(PWM_5,  0);
 
 }
 
@@ -203,15 +202,8 @@ void InitPorts(void)
   Port.B.SetPinsDigitalOut(BIT_5      // LED_ERROR
                           | BIT_4     // LED_CAN
                           | BIT_15    // ADS1299 RESET
-                          | BIT_11
-                          | BIT_12
                           );
-  Port.B.SetPinsDigitalIn(BIT_13);     // ADS_DRDY
   
-  /* SETUP IO GENERAL PURPOSE SWITCHES */
-  Port.E.SetPinsDigitalIn(BIT_0       // SW1A
-                          | BIT_1     // SW1B
-                          );
   /* SETUP IO UART */
   Port.D.SetPinsDigitalIn(BIT_9);     // UART4_RX
   Port.D.SetPinsDigitalOut(BIT_1);    // UART4_TX
@@ -224,9 +216,8 @@ void InitPorts(void)
   Port.B.SetPinsDigitalOut(BIT_14);   // SPI4 CLK
   
   /* DRDY Change Notice */
-  Port.C.SetPinsDigitalIn(BIT_14      // CN0 (DRDY))
-                          | BIT_13);  // CN1
-  
+  Port.C.SetPinsDigitalIn(BIT_14);      // CN0 (DRDY))
+                            
   // Set for no internal pull up resistors on
   mCNOpen((CN_ON|CN_FRZ_OFF),(CN0_ENABLE|CN1_ENABLE), 0);
   
@@ -290,9 +281,9 @@ void InitCan(void)
    * CAN_FILTER0: 0xC1, this configures the filter to accept with ID 0xC1
    * CAN_FILTER_MASK0: 0x00, Configure CAN1 Filter Mask 0 to comprare no bits
    * */
-   Can.Initialize(CAN1, Can1MessageFifoArea, CAN_NB_CHANNELS, CAN_BUFFER_SIZE, FALSE);
-   
-   Can.ConfigInterrupt(CAN1, CAN1_INTERRUPT_PRIORITY, CAN1_INTERRUPT_SUBPRIORITY);
+//   Can.Initialize(CAN1, Can1MessageFifoArea, CAN_NB_CHANNELS, CAN_BUFFER_SIZE, FALSE);
+//   
+//   Can.ConfigInterrupt(CAN1, CAN1_INTERRUPT_PRIORITY, CAN1_INTERRUPT_SUBPRIORITY);
    
 }
 
@@ -302,31 +293,31 @@ void InitCan(void)
 //===========================
 void InitI2c(void)
 {
-  INT8 err;
-  I2c.Open(I2C1, I2C_FREQ_400K);
-  err = I2c.ConfigInterrupt(I2C1, I2C1_INTERRUPT_PRIORITY, I2C1_INTERRUPT_SUBPRIORITY);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  I2c.Open(I2C3, I2C_FREQ_400K);
-  err = I2c.ConfigInterrupt(I2C3, I2C3_INTERRUPT_PRIORITY, I2C3_INTERRUPT_SUBPRIORITY);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  I2c.Open(I2C4, I2C_FREQ_400K);
-  err = I2c.ConfigInterrupt(I2C4, I2C4_INTERRUPT_PRIORITY, I2C4_INTERRUPT_SUBPRIORITY);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
-  I2c.Open(I2C5, I2C_FREQ_400K);
-  err = I2c.ConfigInterrupt(I2C5, I2C5_INTERRUPT_PRIORITY, I2C5_INTERRUPT_SUBPRIORITY);
-  if (err < 0)
-  {
-//    LED_ERROR_ON;
-  }
+//  INT8 err;
+//  I2c.Open(I2C1, I2C_FREQ_400K);
+//  err = I2c.ConfigInterrupt(I2C1, I2C1_INTERRUPT_PRIORITY, I2C1_INTERRUPT_SUBPRIORITY);
+//  if (err < 0)
+//  {
+////    LED_ERROR_ON;
+//  }
+//  I2c.Open(I2C3, I2C_FREQ_400K);
+//  err = I2c.ConfigInterrupt(I2C3, I2C3_INTERRUPT_PRIORITY, I2C3_INTERRUPT_SUBPRIORITY);
+//  if (err < 0)
+//  {
+////    LED_ERROR_ON;
+//  }
+//  I2c.Open(I2C4, I2C_FREQ_400K);
+//  err = I2c.ConfigInterrupt(I2C4, I2C4_INTERRUPT_PRIORITY, I2C4_INTERRUPT_SUBPRIORITY);
+//  if (err < 0)
+//  {
+////    LED_ERROR_ON;
+//  }
+//  I2c.Open(I2C5, I2C_FREQ_400K);
+//  err = I2c.ConfigInterrupt(I2C5, I2C5_INTERRUPT_PRIORITY, I2C5_INTERRUPT_SUBPRIORITY);
+//  if (err < 0)
+//  {
+////    LED_ERROR_ON;
+//  }
 }
 
 
@@ -335,7 +326,7 @@ void InitI2c(void)
 //===========================
 void InitWdt(void)
 {
-  Wdt.Enable();
+//  Wdt.Enable();
 }
 
 
@@ -365,13 +356,15 @@ void InitAdc(void)
 //  UINT32 configPort = ENABLE_ALL_ANA; // Enable AN0-AN15 in analog mode
 //  UINT32 configScan = 0; // Scan all ANs
 
-  UINT32 configPort = ENABLE_AN0_ANA
+  /*UINT32 configPort = ENABLE_AN0_ANA
                     | ENABLE_AN4_ANA
-                    | ENABLE_AN13_ANA; // Enable AN0, AN4 and AN13 in analog mode
+                    | ENABLE_AN13_ANA; // Enable AN0, AN4 and AN13 in analog mode*/
   
-  UINT32 configScan = SKIP_SCAN_AN1
+  UINT32 configScan = SKIP_SCAN_AN0
+                    | SKIP_SCAN_AN1
                     | SKIP_SCAN_AN2
                     | SKIP_SCAN_AN3
+                    | SKIP_SCAN_AN4
                     | SKIP_SCAN_AN5
                     | SKIP_SCAN_AN6
                     | SKIP_SCAN_AN7
@@ -380,14 +373,15 @@ void InitAdc(void)
                     | SKIP_SCAN_AN10
                     | SKIP_SCAN_AN11
                     | SKIP_SCAN_AN12
+                    | SKIP_SCAN_AN13
                     | SKIP_SCAN_AN14
                     | SKIP_SCAN_AN15; // Don't scan the channels that are not enabled by configPort
   //================================================
 
   // Open ADC with parameters above
-  Adc.Open(samplingClk, configHardware, configPort, configScan);
-
-  Adc.ConfigInterrupt(ADC_INTERRUPT_PRIORITY, ADC_INTERRUPT_SUBPRIORITY);
+//  Adc.Open(samplingClk, configHardware, configPort, configScan);
+//
+//  Adc.ConfigInterrupt(ADC_INTERRUPT_PRIORITY, ADC_INTERRUPT_SUBPRIORITY);
 }
 
 
@@ -422,6 +416,7 @@ void InitInputCapture(void)
 void InitDma(void)
 {
   AdsPacket.length = 36;
+  // Packet Header
   AdsPacket.buffer[0] = 0xAA;
   AdsPacket.buffer[1] = 0xBB;
   AdsPacket.buffer[2] = 0xCC;
@@ -468,9 +463,9 @@ void InitDma(void)
 	DmaChnSetEventControl(dmaUartTxChn, DMA_EV_START_IRQ(_UART4_TX_IRQ) );
 
 	// set the transfer:
-	// source is the memory buffer, dest is the Uart buffer
-	// source size is one byte, destination size is the whole buffer
-	// cell size is one byte: we want one byte to be sent per each SPI RXBF event
+	// source is the AdsPacket.buffer, dest is the Uart buffer
+	// source size is the whole buffer, destination size is 1 byte
+	// cell size is one byte: we want one byte to be sent per each UART TXREG event
   DmaChnSetTxfer(dmaUartTxChn, AdsPacket.buffer, (void*)&U4TXREG , AdsPacket.length, 1, 1);
 
 	DmaChnSetEvEnableFlags(dmaUartTxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred  

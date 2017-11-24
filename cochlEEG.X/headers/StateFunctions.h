@@ -31,32 +31,31 @@
 //==============================================================================
 // State Machine private functions prototypes
 //==============================================================================
-UINT32 SpiTransfer(SpiNum_t numSpi, const UINT32 data);
-INT32 PrintToUart(UartModule_t uartModuleId, char *string);
-BYTE constrain(BYTE x, BYTE a, BYTE b);
-INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
-INT32 PrintToUartHex(UartModule_t uartModuleId, UINT32 val);
-INT32 PrintToUartDec(UartModule_t uartModuleId, UINT32 val);
-INT32 printHex(UartModule_t uartModuleId, BYTE _data);
-INT32 PrintlnToUart(UartModule_t uartModuleId, char *string);
-INT32 PrintToUartChar(UartModule_t uartModuleId, char c);
-BYTE constrain(BYTE x, BYTE a, BYTE b);
-void getCommand(char token);
-void sendEOT();
-void loadChannelSettings(char c);
-void writeChannelSettings_maintainRunningState(char chan);
-void setChannelsToDefaultSetting();
-void loadLeadOffSettings(char c);
-char getChannelNumber(char n);
-void changeChannelState_maintainRunningState(BYTE chan, int start);
-void activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode);
-int changeChannelLeadOffDetect_maintainRunningState(char chan);
-void sendDefaultChannelSettings();
-BOOL stopRunning(void);
-BOOL startRunning(int OUT_TYPE);
-void printRegisters();
-void startFromScratch();
-UINT32 millis();
+UINT32  SpiTransfer(SpiNum_t numSpi, const UINT32 data);
+INT32   PrintToUart(UartModule_t uartModuleId, char *string);
+BYTE    constrain(BYTE x, BYTE a, BYTE b);
+INT32   PrintlnToUart(UartModule_t uartModuleId, char *string);
+INT32   PrintToUartHex(UartModule_t uartModuleId, UINT32 val);
+INT32   PrintToUartDec(UartModule_t uartModuleId, UINT32 val);
+INT32   printHex(UartModule_t uartModuleId, BYTE _data);
+INT32   PrintlnToUart(UartModule_t uartModuleId, char *string);
+INT32   PrintToUartChar(UartModule_t uartModuleId, char c);
+BYTE    constrain(BYTE x, BYTE a, BYTE b);
+void    getCommand(char token);
+void    loadChannelSettings(char c);
+void    writeChannelSettings_maintainRunningState(char chan);
+void    setChannelsToDefaultSetting();
+void    loadLeadOffSettings(char c);
+char    getChannelNumber(char n);
+void    changeChannelState_maintainRunningState(BYTE chan, int start);
+void    activateAllChannelsToTestCondition(BYTE testInputCode, BYTE amplitudeCode, BYTE freqCode);
+int     changeChannelLeadOffDetect_maintainRunningState(char chan);
+void    sendDefaultChannelSettings();
+BOOL    stopRunning(void);
+BOOL    startRunning(int OUT_TYPE);
+void    printRegisters();
+void    startFromScratch();
+UINT32  millis();
 
 //==============================================================================
 // Macro definitions

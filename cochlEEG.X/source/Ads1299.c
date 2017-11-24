@@ -26,10 +26,6 @@
 #include "../headers/StateFunctions.h"
 #include <plib.h>
 
-#define SHORT_PACKET 2 // if 1 : | Header 4 bytes | Framecount 4 bytes | Payload 24 bytes | 
-                       // if 0 : | Header 4 bytes | Timestamp 4 bytes | Framecount 4 bytes | Payload 24 bytes | CRC 4 bytes |
-
-
 //==============================================================================
 // Private functions prototypes
 //==============================================================================
@@ -39,14 +35,7 @@
 // Variable definitions
 //==============================================================================
 
-extern volatile UINT32 timeFromStart100Us;    // Unused
-extern volatile UINT32 timeStampUs;           // Unused
-
-
-
-extern BYTE adsDataConversion[27];
 extern volatile UINT32 frameCount;
-sUartLineBuffer_t AdsPacket = {0}; //Uart buffer 
 
 //==============================================================================
 // Board Functions
@@ -130,15 +119,12 @@ void csHigh(int SS)
 
 void initialize_ads(){
   int i, j;
-// recommended power up sequence requiers >Tpor (~32mS)	
     Timer.DelayMs(50);				
-//    pinMode(ADS_RST,OUTPUT);  
     ADS_RESET;
     Timer.DelayMs(1);	// toggle reset pin
     ADS_NO_RESET; // this will reset the Daisy if it is present
     Timer.DelayMs(1);	// recommended to wait 18 Tclk before using device (~8uS);    
 // initalize the  data ready chip select and reset pins:
-//    pinMode(ADS_DRDY, INPUT); // we get DRDY asertion from the on-board ADS
     Timer.DelayMs(40);
     resetADS(BOARD_ADS); // reset the on-board ADS registers, and stop DataContinuousMode
     Timer.DelayMs(10);
@@ -618,7 +604,6 @@ void changeInputType(BYTE inputCode){
   }
 
   writeChannelSettingsAll();
-
 }
  
 // Start continuous data acquisition
@@ -633,101 +618,6 @@ void startADS(void) // NEEDS ADS ADDRESS, OR BOTH?
   isRunning = TRUE;
 }
   
-// Query to see if data is available from the ADS1299...return TRUE is data is available
-BOOL isDataAvailable(void)
-{
-  return (!(Port.B.ReadBits(BIT_13)));
-}
-  
-// CALLED WHEN DRDY PIN IS ASSERTED. NEW ADS DATA AVAILABLE!
-void updateChannelData(){ 
-  updateBoardData();
-//  if(daisyPresent) {updateDaisyData();}
-}
-
-void updateBoardData(){
-  BYTE inByte;
-  int ByteCounter = 0;
-  int i;
-
-  SPI4_CS_LOW;       //  open SPI
-  for(i=0; i<3; i++){ 
-    inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
-    boardStat = (boardStat << 8) | inByte;
-  }
-  for(i = 0; i<8; i++){
-    int j;
-    for(j=0; j<3; j++){   //  read 24 bits of channel data in 8 3 BYTE chunks
-      inByte = xfer(0x00);
-      boardChannelDataRaw[ByteCounter] = inByte;  // raw data goes here
-      ByteCounter++;
-//      boardChannelDataInt[i] = (boardChannelDataInt[i]<<8) | inByte;  // int data goes here
-    }
-  }
-  SPI4_CS_HIGH;        //  close SPI
-  // need to convert 24bit to 32bit if using the filter
-//  for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-//    if(BITREAD(boardChannelDataInt[i],23) == 1){ 
-//      boardChannelDataInt[i] |= 0xFF000000;
-//    }else{
-//      boardChannelDataInt[i] &= 0x00FFFFFF;
-//    }
-//  }
-  timeStampUs = timeFromStart100Us * 100;
-  if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
-}
-
-void updateDaisyData(){
-    BYTE inByte;
-    int ByteCounter = 0;
-    int i;
-    
-    if(daisyPresent && !firstDataPacket){
-      for(i=0; i<8; i++){  // shift and average the BYTE arrays
-        lastDaisyChannelDataInt[i] = daisyChannelDataInt[i]; // remember the last samples
-      }
-    }
-
-    csLow(DAISY_ADS);       //  open SPI
-    for(i=0; i<3; i++){ 
-      inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
-      daisyStat = (daisyStat << 8) | inByte;
-    }
-    for(i = 0; i<8; i++){
-      int j;
-      for(j=0; j<3; j++){   //  read 24 bits of channel data in 8 3 BYTE chunks
-        inByte = xfer(0x00);
-        daisyChannelDataRaw[ByteCounter] = inByte;  // raw data goes here
-        ByteCounter++;
-        daisyChannelDataInt[i] = (daisyChannelDataInt[i]<<8) | inByte; // int data goes here
-      }
-    }
-    csHigh(DAISY_ADS);        //  close SPI
-  // need to convert 24bit to 32bit
-    for(i=0; i<8; i++){     // convert 3 BYTE 2's compliment to 4 BYTE 2's compliment 
-    if(BITREAD(daisyChannelDataInt[i],23) == 1){ 
-      daisyChannelDataInt[i] |= 0xFF000000;
-    }else{
-      daisyChannelDataInt[i] &= 0x00FFFFFF;
-    }
-  }
-  if(daisyPresent && !firstDataPacket){
-    ByteCounter = 0;
-    for(i=0; i<8; i++){   // average this sample with the last sample
-      meanDaisyChannelDataInt[i] = (lastDaisyChannelDataInt[i] + daisyChannelDataInt[i])/2;
-    }
-    for(i=0; i<8; i++){  // place the average values in the meanRaw array
-      int b;
-      for(b=2; b>=0; b--){
-        meanDaisyDataRaw[ByteCounter] = (meanDaisyChannelDataInt[i] >> (b*8)) & 0xFF;
-        ByteCounter++;
-      }
-    }   
-  }  
-    
-  if(firstDataPacket == TRUE){firstDataPacket = FALSE;}
-}
-
 // Stop the continuous data acquisition
 void stopADS()  
 {
@@ -737,50 +627,6 @@ void stopADS()
 	Timer.DelayMs(1);   
   isRunning = FALSE;
 }
-
-
-//write as binary each channel's data
-void sendChannelData() 
-{ 
-  #if SHORT_PACKET == 0
-    AdsPacket.length = 40; 
-    uint2Bytes(PacketCounter,&count_byte[0]);       // Converting UINT32 PacketCounter to byte array
-    uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
-
-    memcpy(&AdsPacket.buffer[0], sync_byte, 4);            // Copy sync code to AdsPacket
-    AdsPacket.buffer[4] = count_byte[3];         // Rearranging from little endian to big endian
-    AdsPacket.buffer[5] = count_byte[2];
-    AdsPacket.buffer[6] = count_byte[1];
-    AdsPacket.buffer[7] = count_byte[0];
-
-    AdsPacket.buffer[8] = timeStamp_byte[3];     // Rearranging from little endian to big endian
-    AdsPacket.buffer[9] = timeStamp_byte[2];
-    AdsPacket.buffer[10] = timeStamp_byte[1];
-    AdsPacket.buffer[11] = timeStamp_byte[0];
-
-    memcpy(&AdsPacket.buffer[12], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
-    memcpy(&AdsPacket.buffer[36], crc_byte, 4);            // Copy CRC to AdsPacket
-
-    Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
-    PacketCounter++;
-    
-  #elif SHORT_PACKET == 1
-    AdsPacket.length = 30; 
-    uint2Bytes(PacketCounter,&count_byte[0]);          // Converting UINT32 PacketCounter to byte array
-
-    memcpy(&AdsPacket.buffer[0], sync_byte_short, 2);  // Copy sync code to AdsPacket
-    AdsPacket.buffer[2] = count_byte[3];               // Rearranging from little endian to big endian
-    AdsPacket.buffer[3] = count_byte[2];
-    AdsPacket.buffer[4] = count_byte[1];
-    AdsPacket.buffer[5] = count_byte[0];
-
-    memcpy(&AdsPacket.buffer[6], &adsDataConversion[3], 24); // Copy RawData to AdsPacket
-
-    Uart.SendDataBuffer(UART4, &AdsPacket.buffer, AdsPacket.length);
-    PacketCounter++;
-  #endif
-}
-
 
 BYTE ADS_getDeviceID(int targetSS) {      // simple hello world com check
   BYTE data = RREG(ID_REG,targetSS);
@@ -839,8 +685,6 @@ void SDATAC(int targetSS) {
     Timer.DelayMs(1);   //must wait at least 4 tCLK cycles after executing this command (Datasheet, pg. 37)
 }
 
-
-//  THIS NEEDS CLEANING AND UPDATING TO THE NEW FORMAT
 void RDATA(int targetSS) {          //  use in Stop Read Continuous mode when DRDY goes low
   BYTE inByte;            //  to read in one sample of the channels
   int i;
@@ -1039,258 +883,5 @@ void printRegisterName(BYTE _address) {
     }
 }
 
-
-
-//
-//void updateBoardData(){
-//  BYTE inByte;
-//  INT32 ByteCounter = 0;
-//
-//  if(daisyPresent && !firstDataPacket){
-//    for(int i=0; i<8; i++){  // shift and average the byte arrays
-//      lastBoardChannelDataInt[i] = boardChannelDataInt[i]; // remember the last samples
-//    }
-//  }
-//  csLow(BOARD_ADS);       //  open SPI
-//  for(int i=0; i<3; i++){ 
-//    inByte = xfer(0x00);    //  read status register (1100 + LOFF_STATP + LOFF_STATN + GPIO[7:4])
-//    boardStat = (boardStat << 8) | inByte;
-//  }
-//  for(int i = 0; i<8; i++){
-//    for(int j=0; j<3; j++){   //  read 24 bits of channel data in 8 3 byte chunks
-//      inByte = xfer(0x00);
-//      boardChannelDataRaw[byteCounter] = inByte;  // raw data goes here
-//      byteCounter++;
-//      boardChannelDataInt[i] = (boardChannelDataInt[i]<<8) | inByte;  // int data goes here
-//    }
-//  }
-//  csHigh(BOARD_ADS);        //  close SPI
-//  // need to convert 24bit to 32bit if using the filter
-//  for(int i=0; i<8; i++){     // convert 3 byte 2's compliment to 4 byte 2's compliment 
-//    if(bitRead(boardChannelDataInt[i],23) == 1){ 
-//      boardChannelDataInt[i] |= 0xFF000000;
-//    }else{
-//      boardChannelDataInt[i] &= 0x00FFFFFF;
-//    }
-//  }
-//  if(daisyPresent && !firstDataPacket){
-//    byteCounter = 0;
-//    for(int i=0; i<8; i++){   // take the average of this and the last sample
-//      meanBoardChannelDataInt[i] = (lastBoardChannelDataInt[i] + boardChannelDataInt[i])/2;
-//    }
-//    for(int i=0; i<8; i++){  // place the average values in the meanRaw array
-//      for(int b=2; b>=0; b--){
-//        meanBoardDataRaw[byteCounter] = (meanBoardChannelDataInt[i] >> (b*8)) & 0xFF;
-//        byteCounter++;
-//      }
-//    }    
-//  }
-//    
-//  if(firstDataPacket == true){firstDataPacket = false;}
-//}
-//
-//
-//INT32 IsDataReady(void)
-//{
-//  return Port.B.ReadBits(BIT_13);
-//}
-//
-///**************************************************************
-// * Function name  : TemplateFunction
-// * Purpose        : Give a template for developpers to start from.
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void InitAds1299(void)
-//{
-//// recommended power up sequence requiers >Tpor (~32mS)	
-//    Timer.DelayMs(1);
-//    ADS_NO_RESET;
-//    Timer.DelayMs(1);
-//    ADS_RESET;
-//    Timer.DelayMs(1);
-//    resetADS(BOARD_ADS); // reset the on-board ADS registers, and stop DataContinuousMode
-//    Timer.DelayMs(1);
-//    AdsWREG(CONFIG1,0xB6); // tell on-board ADS to output its clk, set the data rate to 250SPS
-//    Timer.DelayMs(1);
-//    
-//    WREG(CONFIG1,0x96); // turn off clk output if no daisy present
-//    numChannels = 8;    // expect up to 8 ADS channels 
-//
-//    // DEFAULT CHANNEL SETTINGS FOR ADS
-//    defaultChannelSettings[POWER_DOWN] = NO;        // on = NO, off = YES
-//    defaultChannelSettings[GAIN_SET] = ADS_GAIN24;     // Gain setting
-//    defaultChannelSettings[INPUT_TYPE_SET] = ADSINPUT_NORMAL;// input muxer setting
-//    defaultChannelSettings[BIAS_SET] = YES;    // add this channel to bias generation
-//    defaultChannelSettings[SRB2_SET] = YES;       // connect this P side to SRB2
-//    defaultChannelSettings[SRB1_SET] = NO;        // don't use SRB1
-//
-//    for(int i=0; i<numChannels; i++){
-//      for(int j=0; j<6; j++){
-//        channelSettings[i][j] = defaultChannelSettings[j];  // assign default settings
-//      }
-//      useInBias[i] = TRUE;    // keeping track of Bias Generation
-//      useSRB2[i] = TRUE;      // keeping track of SRB2 inclusion
-//    }
-//    boardUseSRB1 = FALSE;
-//
-//    writeChannelSettings(); // write settings to the on-board and on-daisy ADS if present
-//
-//    WREG(CONFIG3,0b11101100); 
-//    Timer.DelayMs(1);  // enable internal reference drive and etc.
-//    for(int i=0; i<numChannels; i++){  // turn off the impedance measure signal
-//      leadOffSettings[i][PCHAN] = OFF;
-//      leadOffSettings[i][NCHAN] = OFF;
-//    }
-//    verbosity = FALSE;      // when verbosity is true, there will be Serial feedback
-//    firstDataPacket = TRUE;
-//}
-//
-///**************************************************************
-// * Function name  : AdsWAKEUP
-// * Purpose        : Wake up from stand by Mode
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsWAKEUP(void) 
-//{
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _WAKEUP);
-//  SPI4_CS_HIGH;
-//  Timer.DelayMs(1);
-//}
-//
-///**************************************************************
-// * Function name  : AdsSTANDBY
-// * Purpose        : Enter Standby Mode
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsSTANDBY(void) 
-//{    // only allowed to send WAKEUP after sending STANDBY
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _STANDBY);
-//  SPI4_CS_HIGH;
-//}
-//
-///**************************************************************
-// * Function name  : AdsRESET
-// * Purpose        : Reset the device
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsRESET(void) 
-//{      // reset all the registers to default settings
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _RESET);
-//  SPI4_CS_HIGH;
-//  Timer.DelayMs(1);
-//}
-//
-///**************************************************************
-// * Function name  : AdsSTART
-// * Purpose        : Start and Restart (synch) conversions
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsSTART(void) 
-//{      //start data conversion 
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _START);
-//  SPI4_CS_HIGH;  
-//}
-//
-///**************************************************************
-// * Function name  : AdsSTOP
-// * Purpose        : Stop Conversion.
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsSTOP(void) 
-//{     //stop data conversion
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _STOP);
-//  SPI4_CS_HIGH;  
-//}
-//
-///**************************************************************
-// * Function name  : AdsRDATAC
-// * Purpose        : Start Read Data Continuously Mode
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsRDATAC(void) 
-//{
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _RDATAC);
-//  SPI4_CS_HIGH;  
-//  Timer.DelayMs(1);  
-//}
-//
-///**************************************************************
-// * Function name  : AdsSDATAC
-// * Purpose        : Stop Read Data Continuously Mode
-// * Arguments      : None.
-// * Returns        : None.
-// *************************************************************/
-//void AdsSDATAC(void) 
-//{
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, _SDATAC);
-//  SPI4_CS_HIGH;  
-//  Timer.DelayMs(1);  
-//}
-//
-///**************************************************************
-// * Function name  : AdsRREG
-// * Purpose        : Reads register at address, returns its value
-// * Arguments      : BYTE address
-// * Returns        : Value of register specified as argument
-// *************************************************************/
-//UINT32 AdsRREG(BYTE address) 
-//  {    
-//    UINT32 regValue = 0; 
-//    BYTE opcode = address + 0x20;   // RREG expects 001rrrrr where rrrrr = _address
-//    SPI4_CS_HIGH;
-//    while(Spi.IsSpiBusy(SPI4));
-//    SPI4_CS_LOW;                //  open SPI
-//    SpiTransfer(SPI4, opcode);  // Send opcode
-//    SpiTransfer(SPI4, 0x00);    // Number of registers to read -1 
-//    regValue = SpiTransfer(SPI4, 0x00); // Send dummy data and return Rx buffer contents
-//    SPI4_CS_HIGH;  
-//    return regValue;     // return requested register value
-//  }
-//
-///**************************************************************
-// * Function name  : AdsWREG
-// * Purpose        : Writes register at _address
-// * Arguments      : BYTE address, BYTE value
-// * Returns        : None.
-// *************************************************************/
-//void AdsWREG(BYTE address, BYTE regValue) 
-//{ 
-//  BYTE opcode = address + 0x40;   //  WREG expects 010rrrrr where rrrrr = _address
-//  SPI4_CS_HIGH;
-//  while(Spi.IsSpiBusy(SPI4));
-//  SPI4_CS_LOW;
-//  SpiTransfer(SPI4, opcode);
-//  SpiTransfer(SPI4, 0x00);    // Number of registers to write -1
-//  SpiTransfer(SPI4, regValue);
-//  SPI4_CS_HIGH;
-//}
 
 

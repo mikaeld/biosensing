@@ -113,7 +113,7 @@ void StartInterrupts  (void);
 #define SPI4_CS_LOW         Port.F.ClearBits(BIT_3)
 #define SPI4_CS_TOGGLE      Port.F.ToggleBits(BIT_3)
 
-#define ADS_DRDY            Port.B.ReadBits(BIT_13)
+#define ADS_DRDY            Port.C.ReadBits(BIT_14)
 #define ADS_RESET           Port.B.ClearBits(BIT_15)
 #define ADS_NO_RESET        Port.B.SetBits(BIT_15)  
 

@@ -167,12 +167,6 @@ INT32 err;
 
 void eventSerial()
 {
-//  while(Uart.Var.oIsRxDataAvailable[UART4]);
-//  
-//  sUartLineBuffer_t buffer = { .buffer = {0} ,.length = 0 }; 
-//  INT32 err; 
-//  err = Uart.GetRxFifoBuffer(UART2, &buffer, FALSE);        
-  
   while(Uart.Var.oIsRxDataAvailable[UART4])
   { 
     err = Uart.GetRxFifoBuffer(UART4, &buffer, FALSE);
@@ -195,39 +189,6 @@ void eventSerial()
 
 void getCommand(char token){
     switch (token){
-//TURN CHANNELS ON/OFF COMMANDS
-      case '1':
-      changeChannelState_maintainRunningState(1,DEACTIVATE); break;
-      case '2':
-      changeChannelState_maintainRunningState(2,DEACTIVATE); break;
-      case '3':
-        changeChannelState_maintainRunningState(3,DEACTIVATE); break;
-      case '4':
-        changeChannelState_maintainRunningState(4,DEACTIVATE); break;
-      case '5':
-        changeChannelState_maintainRunningState(5,DEACTIVATE); break;
-      case '6':
-        changeChannelState_maintainRunningState(6,DEACTIVATE); break;
-      case '7':
-        changeChannelState_maintainRunningState(7,DEACTIVATE); break;
-      case '8':
-        changeChannelState_maintainRunningState(8,DEACTIVATE); break;
-      case '!':
-        changeChannelState_maintainRunningState(1,ACTIVATE); break;
-      case '@':
-        changeChannelState_maintainRunningState(2,ACTIVATE); break;
-      case '#':
-        changeChannelState_maintainRunningState(3,ACTIVATE); break;
-      case '$':
-        changeChannelState_maintainRunningState(4,ACTIVATE); break;
-      case '%':
-        changeChannelState_maintainRunningState(5,ACTIVATE); break;
-      case '^':
-        changeChannelState_maintainRunningState(6,ACTIVATE); break;
-      case '&':
-        changeChannelState_maintainRunningState(7,ACTIVATE); break;
-      case '*':
-        changeChannelState_maintainRunningState(8,ACTIVATE); break;
       case 'q':
         WREG(CONFIG1,0xB6,BOARD_ADS); break; // Sampling rate is 250Hz
       case 'w':
@@ -242,24 +203,7 @@ void getCommand(char token){
         WREG(CONFIG1,0xB1,BOARD_ADS); break; // Sampling rate is 8000Hz
       case 'u':
         WREG(CONFIG1,0xB0,BOARD_ADS); break; // Sampling rate is 16000Hz
-      case 'i':
-        changeChannelState_maintainRunningState(16,DEACTIVATE); break;
-      case 'Q':
-        changeChannelState_maintainRunningState(9,ACTIVATE); break;
-      case 'W':
-        changeChannelState_maintainRunningState(10,ACTIVATE); break;
-      case 'E':
-        changeChannelState_maintainRunningState(11,ACTIVATE); break;
-      case 'R':
-        changeChannelState_maintainRunningState(12,ACTIVATE); break;
-      case 'T':
-        changeChannelState_maintainRunningState(13,ACTIVATE); break;
-      case 'Y':
-        changeChannelState_maintainRunningState(14,ACTIVATE); break;
-      case 'U':
-        changeChannelState_maintainRunningState(15,ACTIVATE); break;
-      case 'I':
-        changeChannelState_maintainRunningState(16,ACTIVATE); break;
+      
 
 // TEST SIGNAL CONTROL COMMANDS
       case '0':
@@ -274,25 +218,6 @@ void getCommand(char token){
         activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_SLOW); break;
       case ']':
         activateAllChannelsToTestCondition(ADSINPUT_TESTSIG,ADSTESTSIG_AMP_2X,ADSTESTSIG_PULSE_FAST); break;
-
-// SD CARD COMMANDS
-    //    5min     15min    30min    1hr      2hr      4hr      12hr     24hr    512blocks
-      case 'A': case'S': case'F': case'G': case'H': case'J': case'K': case'L': case 'a':
-//        fileSize = token; SDfileOpen = setupSDcard(fileSize); //
-        break;
-      case 'j': // close the file, if it's open
-//        if(SDfileOpen){ SDfileOpen = closeSDfile(); }
-        break;
-
-//  SERIAL TRIGGER COMMANDS
-      case '`':
-        LED_DEBUG1_OFF;
-//        auxData[0] = auxData[1] = auxData[2] = 0x6220;
-//        addAuxToSD = TRUE;
-        serialTrigger = TRUE;
-        triggerTimer = millis();
-        break;
-
 
 // CHANNEL SETTING COMMANDS
       case 'x':  // expect 6 parameters
@@ -330,59 +255,29 @@ void getCommand(char token){
 
 // STREAM DATA AND FILTER COMMANDS
       case 'b':  // stream data
-//        if(SDfileOpen) stampSD(ACTIVATE);                     // time stamp the start time
-//        if(useAccel){enable_accel(RATE_25HZ);}      // fire up the accelerometer if you want it
         startRunning(outputType);       // turn on the fire hose
         break;
      case 's':  // stop streaming data
-//        if(SDfileOpen) stampSD(DEACTIVATE);       // time stamp the stop time
-//        if(useAccel){disable_accel();}  // shut down the accelerometer if you're using it
         stopRunning();
         break;
-      case 'f':
-//         useFilters = TRUE;
-         break;
-      case 'g':
-//         useFilters = FALSE;
-         break;
 
 //  INITIALIZE AND VERIFY
       case 'v':
          startFromScratch();
          break;
-//  QUERY THE ADS AND ACCEL REGITSTERS
-     case '?':
-        printRegisters();
+      default:
         break;
-     default:
-       break;
      }
   }// end of getCommand
 
-void sendEOT(){
-  PrintToUart(UART4, "$$$");
-}
-
 void loadChannelSettings(char c){
-
   if(channelSettingsCounter == 0)
   {  // if it's the first BYTE in this channel's array, this BYTE is the channel number to set
     currentChannelToSet = getChannelNumber(c); // we just got the channel to load settings into (shift number down for array usage)
     channelSettingsCounter++;
-    if(!is_running) 
-    {
-//      PrintToUart(UART4, "load setting ");
-//      PrintToUart(UART4, "for channel ");
-//      PrintToUartDec(UART4, currentChannelToSet+1); PrintlnToUart(UART4, " ");
-    }
     return;
   }
 //  setting BYTEs are in order: POWER_DOWN, GAIN_SET, INPUT_TYPE_SET, BIAS_SET, SRB2_SET, SRB1_SET
-  if(!is_running) 
-  {
-//    PrintToUartDec(UART4, channelSettingsCounter-1);
-//    PrintToUart(UART4, " with "); PrintToUartChar(UART4, c); PrintlnToUart(UART4, " ");
-  }
   c -= '0';
   if(channelSettingsCounter-1 == GAIN_SET)
   { 
@@ -392,9 +287,6 @@ void loadChannelSettings(char c){
   channelSettingsCounter++;
   if(channelSettingsCounter == 7)
   {  // 1 currentChannelToSet, plus 6 channelSetting parameters
-    if(!is_running); //PrintToUart(UART4, "done receiving settings for channel ");
-//    PrintToUartDec(UART4, currentChannelToSet+1); 
-//    PrintlnToUart(UART4, " ");
     getChannelSettings = FALSE;
   }
 }
@@ -403,9 +295,7 @@ void writeChannelSettings_maintainRunningState(char chan){
   BOOL is_running_when_called = is_running;
   int cur_outputType = outputType;
   stopRunning();                   //must stop running to change channel settings
-
   writeChannelSettings(chan+1);    // change the channel settings on ADS
-
   if (is_running_when_called == TRUE) {
     startRunning(cur_outputType);  //restart, if it was running before
   }
@@ -527,7 +417,6 @@ void sendDefaultChannelSettings(){
   int cur_outputType = outputType;
 
   reportDefaultChannelSettings();
-  sendEOT();
   Timer.DelayMs(10);
 
   //restart, if it was running before
@@ -547,7 +436,7 @@ BOOL stopRunning(void) {
 BOOL startRunning(int OUT_TYPE) {
   if(!is_running){
     outputType = OUT_TYPE;
-    startStreaming();  // start the data acquisition, turn on accelerometer
+    startStreaming();  // start the data acquisition
     is_running = TRUE;
   }
     return is_running;
@@ -556,9 +445,8 @@ BOOL startRunning(int OUT_TYPE) {
 void printRegisters(){
 
   if(!is_running){
-    // print the ADS and LIS3DH registers
+    // print the ADS
     printAllRegisters();
-    sendEOT();
     Timer.DelayMs(20);
   }
 
@@ -571,7 +459,6 @@ void startFromScratch(){
     PrintlnToUart(UART4, "CochlEEG - CRITIAS ETS/r/n");
     configureLeadOffDetection(LOFF_MAG_6NA, LOFF_FREQ_31p2HZ);
     PrintToUart(UART4, "On Board ADS1299 Device ID: 0x"); PrintToUartHex(UART4, ADS_getDeviceID(ON_BOARD)); PrintlnToUart(UART4, " ");
-    sendEOT();
   }
 }
 

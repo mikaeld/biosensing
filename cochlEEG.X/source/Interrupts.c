@@ -115,7 +115,7 @@ void __ISR(_DMA3_VECTOR, IPL3SOFT) Dma3InterruptHandler(void)
  *******************************************************************************/
 void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
 {
-  if(!Port.C.ReadBits(BIT_14))
+  if(!ADS_DRDY)
   {
     SPI4_CS_LOW;
     DmaChnStartTxfer(DMA_CHANNEL1,DMA_WAIT_NOT,0);
