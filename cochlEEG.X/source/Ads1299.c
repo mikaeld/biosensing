@@ -26,7 +26,7 @@
 #include "../headers/StateFunctions.h"
 #include <plib.h>
 
-#define SHORT_PACKET 1 // if 1 : | Header 4 bytes | Framecount 4 bytes | Payload 24 bytes | 
+#define SHORT_PACKET 2 // if 1 : | Header 4 bytes | Framecount 4 bytes | Payload 24 bytes | 
                        // if 0 : | Header 4 bytes | Timestamp 4 bytes | Framecount 4 bytes | Payload 24 bytes | CRC 4 bytes |
 
 
@@ -38,16 +38,15 @@
 //==============================================================================
 // Variable definitions
 //==============================================================================
-BYTE sync_byte[4] = {0xAA, 0xBB, 0XCC, 0XDD};
-BYTE sync_byte_short[2] = {0xAA, 0xBB};
-UINT32 PacketCounter = 0;
-BYTE count_byte[4] = {0};
-BYTE timeStamp_byte[4] = {0};
-BYTE crc_byte[4] = {0XFF, 0XFF, 0XFF, 0XFF};
-extern volatile UINT32 timeFromStart100Us;
-extern volatile UINT32 timeStampUs;
-sUartLineBuffer_t AdsPacket = {0};            //Uart buffer 
+
+extern volatile UINT32 timeFromStart100Us;    // Unused
+extern volatile UINT32 timeStampUs;           // Unused
+
+
+
 extern BYTE adsDataConversion[27];
+extern volatile UINT32 frameCount;
+sUartLineBuffer_t AdsPacket = {0}; //Uart buffer 
 
 //==============================================================================
 // Board Functions
@@ -625,7 +624,7 @@ void changeInputType(BYTE inputCode){
 // Start continuous data acquisition
 void startADS(void) // NEEDS ADS ADDRESS, OR BOTH?
 {
-  PacketCounter = 0;
+  frameCount = 0;
   firstDataPacket = TRUE;
   RDATAC(BOTH_ADS); // enter Read Data Continuous mode
 	Timer.DelayMs(1);   

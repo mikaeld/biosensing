@@ -43,40 +43,40 @@
  * +--------------------------------------------+
  * | Priority | Subpriority | Interrupt handler |
  * |----------+-------------+-------------------|
- * | 1        | 0           | UART 6            |
+ * | 1        | 0           |                   |
  * | 1        | 1           |                   |
  * | 1        | 2           |                   |
  * | 1        | 3           |                   |
  * |----------+-------------+-------------------|
- * | 2        | 0           |                   |
- * | 2        | 1           |                   |
+ * | 2        | 0           | Timer 2           |
+ * | 2        | 1           | Timer 1           |
  * | 2        | 2           | Timer 4           |
- * | 2        | 3           |                   |
+ * | 2        | 3           | Timer 5           |
  * |----------+-------------+-------------------|
  * | 3        | 0           |                   |
  * | 3        | 1           | Timer 3           |
  * | 3        | 2           |                   |
  * | 3        | 3           |                   |
  * |----------+-------------+-------------------|
- * | 4        | 0           | Timer 2           |
- * | 4        | 1           | Timer 5           |
+ * | 4        | 0           |                   |
+ * | 4        | 1           |                   |
  * | 4        | 2           |                   |
  * | 4        | 3           | SPI 4             |
  * |----------+-------------+-------------------|
  * | 5        | 0           |                   |
- * | 5        | 1           |                   |
- * | 5        | 2           | I2C 4             |
- * | 5        | 3           | DMA1&2            |
+ * | 5        | 1           | DMA3              |
+ * | 5        | 2           | DMA1              |
+ * | 5        | 3           | DMA2              |
  * |----------+-------------+-------------------|
  * | 6        | 0           |                   |
- * | 6        | 1           | CAN 1             |
- * | 6        | 2           |                   |
- * | 6        | 3           | Timer 1           |
+ * | 6        | 1           |                   |
+ * | 6        | 2           | UART4             |
+ * | 6        | 3           |                   |
  * |----------+-------------+-------------------|
- * | 7        | 0           | Input Capture 1   |
- * | 7        | 1           | Input Capture 3   |
- * | 7        | 2           | Input Capture 2   |
- * | 7        | 3           | Input Capture 4   |
+ * | 7        | 0           |                   |
+ * | 7        | 1           |                   |
+ * | 7        | 2           |                   |
+ * | 7        | 3           |                   |
  * +----------+-------------+-------------------+
  * 
  */
@@ -86,20 +86,23 @@
 //===============================================
 #define TIMER1_INTERRUPT_PRIORITY       2         // Used in ChinookLib function
 #define T1_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
+#define TIMER1_INTERRUPT_SUBPRIORITY    3         // Highest subpriority
+
 #define TIMER2_INTERRUPT_PRIORITY       2         // Used in ChinookLib function
 #define T2_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
-#define TIMER3_INTERRUPT_PRIORITY       7         // Used in ChinookLib function
-#define T3_INTERRUPT_PRIORITY           ipl7auto  // Used in ISR
-#define TIMER4_INTERRUPT_PRIORITY       1         // Used in ChinookLib function
-#define T4_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
-#define TIMER5_INTERRUPT_PRIORITY       1         // Used in ChinookLib function
-#define T5_INTERRUPT_PRIORITY           ipl1auto  // Used in ISR
-
-#define TIMER1_INTERRUPT_SUBPRIORITY    3         // Highest subpriority
 #define TIMER2_INTERRUPT_SUBPRIORITY    1
-#define TIMER3_INTERRUPT_SUBPRIORITY    3         // Highest subpriority
+
+#define TIMER3_INTERRUPT_PRIORITY       3         // Used in ChinookLib function
+#define T3_INTERRUPT_PRIORITY           ipl3auto  // Used in ISR
+#define TIMER3_INTERRUPT_SUBPRIORITY    1         // Highest subpriority
+
+#define TIMER4_INTERRUPT_PRIORITY       2         // Used in ChinookLib function
+#define T4_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
 #define TIMER4_INTERRUPT_SUBPRIORITY    2
-#define TIMER5_INTERRUPT_SUBPRIORITY    0         // Lowest subpriority
+
+#define TIMER5_INTERRUPT_PRIORITY       2         // Used in ChinookLib function
+#define T5_INTERRUPT_PRIORITY           ipl2auto  // Used in ISR
+#define TIMER5_INTERRUPT_SUBPRIORITY    3         // Lowest subpriority
 //===============================================
 
 
@@ -108,23 +111,28 @@
 //===============================================
 #define UART1_INTERRUPT_PRIORITY        1           // Used in ChinookLib function
 #define U1_INTERRUPT_PRIORITY           ipl1auto    // Used in ISR
+#define UART1_INTERRUPT_SUBPRIORITY     3           // Highest subpriority
+
 #define UART2_INTERRUPT_PRIORITY        2           // Used in ChinookLib function
 #define U2_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
+#define UART2_INTERRUPT_SUBPRIORITY     1
+
 #define UART3_INTERRUPT_PRIORITY        1           // Used in ChinookLib function
 #define U3_INTERRUPT_PRIORITY           ipl1auto    // Used in ISR
+#define UART3_INTERRUPT_SUBPRIORITY     3           // Highest subpriority
+
 #define UART4_INTERRUPT_PRIORITY        6           // Used in ChinookLib function
 #define U4_INTERRUPT_PRIORITY           ipl6auto    // Used in ISR
+#define UART4_INTERRUPT_SUBPRIORITY     2
+
 #define UART5_INTERRUPT_PRIORITY        2           // Used in ChinookLib function
 #define U5_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
+#define UART5_INTERRUPT_SUBPRIORITY     0           // Lowest subpriority
+
 #define UART6_INTERRUPT_PRIORITY        1           // Used in ChinookLib function
 #define U6_INTERRUPT_PRIORITY           ipl1auto    // Used in ISR
-
-#define UART1_INTERRUPT_SUBPRIORITY     3           // Highest subpriority
-#define UART2_INTERRUPT_SUBPRIORITY     1
-#define UART3_INTERRUPT_SUBPRIORITY     3           // Highest subpriority
-#define UART4_INTERRUPT_SUBPRIORITY     2
-#define UART5_INTERRUPT_SUBPRIORITY     0           // Lowest subpriority
 #define UART6_INTERRUPT_SUBPRIORITY     0           // Lowest subpriority
+
 //===============================================
 
 
@@ -137,13 +145,13 @@
 #define S2_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
 #define SPI3_INTERRUPT_PRIORITY         1           // Used in ChinookLib function
 #define S3_INTERRUPT_PRIORITY           ipl1auto    // Used in ISR
-#define SPI4_INTERRUPT_PRIORITY         2           // Used in ChinookLib function
-#define S4_INTERRUPT_PRIORITY           ipl2auto    // Used in ISR
+#define SPI4_INTERRUPT_PRIORITY         4           // Used in ChinookLib function
+#define S4_INTERRUPT_PRIORITY           ipl4auto    // Used in ISR
 
 #define SPI1_INTERRUPT_SUBPRIORITY      3           // Highest subpriority
 #define SPI2_INTERRUPT_SUBPRIORITY      1
 #define SPI3_INTERRUPT_SUBPRIORITY      3           // Highest subpriority
-#define SPI4_INTERRUPT_SUBPRIORITY      0           // Lowest subpriority
+#define SPI4_INTERRUPT_SUBPRIORITY      3           // Lowest subpriority
 //===============================================
 
 

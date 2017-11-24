@@ -35,23 +35,14 @@ extern volatile BOOL oDmaSpiRxIntFlag;
 extern volatile BOOL oDmaUartTxIntFlag;
 extern sUartLineBuffer_t AdsPacket;
 
-DmaChannel		dmaSpiTxChn = DMA_CHANNEL1;	// DMA channel to use for our example
   // NOTE: the DMA ISR setting has to match the channel number
-DmaChannel    dmaSpiRxChn = DMA_CHANNEL2;
+DmaChannel		dmaSpiTxChn   = DMA_CHANNEL1;
+DmaChannel    dmaSpiRxChn   = DMA_CHANNEL2;
+DmaChannel    dmaUartTxChn  = DMA_CHANNEL3;
 
-BYTE adsDataConversion[27] = {0};     // Buffer for data conversions
 BYTE adsSpiDummyTx[27] = {0};   // Dummy data to send to ADS1299 during data conversion (SPI transaction)
 
 
-/***********************************
- * Table of functions used in Skadi
- **********************************/
-sSkadiCommand_t skadiCommandTable[] =
-{
-   {"LedDebug"    , LedDebug    , 1, "Usage : flash Led DEBUG"}   // 1 argument
-  ,{"LedCan"      , LedCan      , 1, "Usage : flash Led CAN"}     // 1 argument
-  ,{"ReInitSystem", ReInitSystem, 0, "Redo StateInit()"}          // 0 argument
-};
 
 
 //==============================================================================
@@ -119,42 +110,13 @@ void InitSpi(void)
                                 | SPI_ENHANCED_BUFFER_MODE
                                 | SPI_TX_EVENT_BUFFER_EMPTY
                                 | SPI_RX_EVENT_BUFFER_NOT_EMPTY
+                                ;
 
-                ,oSlaveFlags  =   SPI_SLAVE_MODE
-                                | SPI_SLAVE_SS
-                                | SPI_16_BITS_CHAR
-                                | SPI_ENHANCED_BUFFER_MODE
-                                | SPI_TX_EVENT_BUFFER_EMPTY
-                                | SPI_RX_EVENT_BUFFER_NOT_EMPTY
-                ;
-
-//  err = Spi.Open(SPI1, oSlaveFlags, 5e6);   // Open the SPI1 as a slave at a bitrate of 5 MHz
-//  if (err < 0)                // Check for errors
-//  {
-//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-//  }
-  // SPI interrupts not functionnal as of yet
-//  Spi.ConfigInterrupt(SPI1, SPI1_INTERRUPT_PRIORITY, SPI1_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI1
-//  err = Spi.Open(SPI2, oSlaveFlags, 5e6);   // Open the SPI2 as a slave at a bitrate of 4 MHz
-//  if (err < 0)                // Check for errors
-//  {
-//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-//  }
-//  err = Spi.Open(SPI3, oMasterFlags, 5e6);   // Open the SPI3 as a master at a bitrate of 5 MHz
-//  if (err < 0)                // Check for errors
-//  {
-//    Port.C.SetBits(BIT_1);    // Turn on the LD5 on MAX32
-//  }
-  err = Spi.Open(SPI4, oMasterFlags, 10e6);   // Open the SPI4 as a master at a bitrate of 10 MHz
+  err = Spi.Open(SPI4, oMasterFlags, 9e6);   // Open the SPI4 as a master at a bitrate of 9 MHz (Max freq is 18 MHz, but causes 1 bit shift for unknown reasons)
   if (err < 0)                // Check for errors
   {
     LED_ERROR_ON;    // Turn on the LED_ERROR
   }
-
-  // SPI interrupts not functionnal as of yet
-//  Spi.ConfigInterrupt(SPI2, SPI2_INTERRUPT_PRIORITY, SPI2_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI2
-//  Spi.ConfigInterrupt(SPI3, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI3
-//  Spi.ConfigInterrupt(SPI4, SPI3_INTERRUPT_PRIORITY, SPI4_INTERRUPT_SUBPRIORITY);  // Configure Interrupt for SPI4
 }
 
 
@@ -286,7 +248,7 @@ void InitUart (void)
 //  Uart.Open(UART1, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 1 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART2, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 2 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART3, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 3 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
-  Uart.Open(UART4, 2000000, oConfig, oFifoMode, oLineControl);      // Open UART 4 as : 1250000 BAUD, 1 stop bit, no parity and 8 bits data
+  Uart.Open(UART4, 3000000, oConfig, oFifoMode, oLineControl);      // Open UART 4 as : 3.0 MBAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART5, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 5 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 //  Uart.Open(UART6, BAUD9600, oConfig, oFifoMode, oLineControl);   // Open UART 6 as : 9600 BAUD, 1 stop bit, no parity and 8 bits data
 
@@ -310,16 +272,6 @@ void InitUart (void)
   Uart.ConfigInterrupt(UART4, UART4_INTERRUPT_PRIORITY, UART4_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART5, UART5_INTERRUPT_PRIORITY, UART5_INTERRUPT_SUBPRIORITY);
 //  Uart.ConfigInterrupt(UART6, UART6_INTERRUPT_PRIORITY, UART6_INTERRUPT_SUBPRIORITY);
-}
-
-
-//===========================
-//	INIT SKADI
-//===========================
-void InitSkadi(void)
-{
-//  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART1, FALSE);   // This system does not use UART interrupts
-  Skadi.Init(skadiCommandTable, sizeof(skadiCommandTable)/sizeof(sSkadiCommand_t), UART4, TRUE);   // This system uses UART interrupts
 }
 
 
@@ -469,12 +421,18 @@ void InitInputCapture(void)
 //===========================
 void InitDma(void)
 {
+  AdsPacket.length = 36;
+  AdsPacket.buffer[0] = 0xAA;
+  AdsPacket.buffer[1] = 0xBB;
+  AdsPacket.buffer[2] = 0xCC;
+  AdsPacket.buffer[3] = 0xDD;
+  
   /**********************************************/
   /***      Configure SPI Tx DMA Channel      ***/
   /**********************************************/
   
   // open and configure the DMA channel.
-	DmaChnOpen(dmaSpiTxChn, DMA_CHN_PRI0, DMA_OPEN_DEFAULT);
+	DmaChnOpen(dmaSpiTxChn, DMA_CHN_PRI3, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the Change Notice interrupt (DRDY pin) to start our transfer
 	DmaChnSetEventControl(dmaSpiTxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_TX_IRQ));
@@ -487,7 +445,7 @@ void InitDma(void)
   /***      Configure SPI Rx DMA Channel      ***/
   /**********************************************/
   // open and configure the DMA channel.
-	DmaChnOpen(dmaSpiRxChn, DMA_CHN_PRI1, DMA_OPEN_DEFAULT);
+	DmaChnOpen(dmaSpiRxChn, DMA_CHN_PRI2, DMA_OPEN_DEFAULT);
 
 	// set the events: we want the SPI receive buffer full interrupt to start our transfer
 	DmaChnSetEventControl(dmaSpiRxChn, DMA_EV_START_IRQ_EN | DMA_EV_START_IRQ(_SPI4_RX_IRQ));
@@ -496,9 +454,26 @@ void InitDma(void)
 	// source is the SPI buffer, dest is our memory buffer
 	// source size is one byte, destination size is the whole buffer
 	// cell size is one byte: we want one byte to be sent per each SPI RXBF event
-	DmaChnSetTxfer(dmaSpiRxChn, (void*)&SPI4BUF, adsDataConversion, 1, sizeof(adsDataConversion), 1);
+	DmaChnSetTxfer(dmaSpiRxChn, (void*)&SPI4BUF, &AdsPacket.buffer[9], 1, 27, 1);
 
 	DmaChnSetEvEnableFlags(dmaSpiRxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred  
+
+  /**********************************************/
+  /***      Configure UART Tx DMA Channel      ***/
+  /**********************************************/
+  // open and configure the DMA channel.
+	DmaChnOpen(dmaUartTxChn, DMA_CHN_PRI1, DMA_OPEN_CHAIN_HI);
+  
+	// set the events: DMAChn3 is chained to DMAChn2
+	DmaChnSetEventControl(dmaUartTxChn, DMA_EV_START_IRQ(_UART4_TX_IRQ) );
+
+	// set the transfer:
+	// source is the memory buffer, dest is the Uart buffer
+	// source size is one byte, destination size is the whole buffer
+	// cell size is one byte: we want one byte to be sent per each SPI RXBF event
+  DmaChnSetTxfer(dmaUartTxChn, AdsPacket.buffer, (void*)&U4TXREG , AdsPacket.length, 1, 1);
+
+	DmaChnSetEvEnableFlags(dmaUartTxChn, DMA_EV_BLOCK_DONE);	// enable the transfer done interrupt, when all buffer transferred  
 }
 
 //===========================
@@ -517,11 +492,16 @@ void StartInterrupts(void)
 	oDmaSpiTxIntFlag = 0;			// clear the interrupt flag we're  waiting on  
  
     
-  INTSetVectorPriority(INT_VECTOR_DMA(dmaSpiRxChn), INT_PRIORITY_LEVEL_5);		// set INT controller priority
+  INTSetVectorPriority(INT_VECTOR_DMA(dmaSpiRxChn), INT_PRIORITY_LEVEL_4);		// set INT controller priority
 	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaSpiRxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
   INTEnable(INT_SOURCE_DMA(dmaSpiRxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
 	oDmaSpiRxIntFlag = 0;			// clear the interrupt flag we're  waiting on
   
+  
+  INTSetVectorPriority(INT_VECTOR_DMA(dmaUartTxChn), INT_PRIORITY_LEVEL_3);		// set INT controller priority
+	INTSetVectorSubPriority(INT_VECTOR_DMA(dmaUartTxChn), INT_SUB_PRIORITY_LEVEL_3);		// set INT controller sub-priority
+  INTEnable(INT_SOURCE_DMA(dmaUartTxChn), INT_ENABLED);		// enable the chn interrupt in the INT controller
+	oDmaUartTxIntFlag = 0;			// clear the interrupt flag we're  waiting on
   
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 // Enable timer interrupts

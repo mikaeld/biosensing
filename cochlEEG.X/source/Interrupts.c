@@ -30,13 +30,18 @@
 //==============================================================================
 // VARIABLES
 //==============================================================================
-volatile UINT32 timeFromStartMs = 0;
-volatile BOOL   oDataAvailableFlag = FALSE;
-volatile UINT32 timeFromStart100Us = 0;
-volatile BOOL		oDmaSpiTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
-volatile BOOL		oDmaSpiRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
-volatile BOOL   oDmaUartTxIntFlag = 0;  
-volatile UINT32 timeStampUs = 0;
+volatile  UINT32 timeFromStartMs = 0;
+volatile  BOOL   oDataAvailableFlag = FALSE;
+volatile  UINT32 timeFromStart100Us = 0;
+volatile  BOOL		oDmaSpiTxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile  BOOL		oDmaSpiRxIntFlag = 0;			// flag used in interrupts, signal that DMA transfer ended
+volatile  BOOL   oDmaUartTxIntFlag = 0;  
+volatile  UINT32 timeStampUs = 0;
+volatile  UINT32 frameCount = 0;
+extern sUartLineBuffer_t AdsPacket; 
+BYTE frameCount_byte[4] = {0};
+BYTE timeStamp_byte[4] = {0};               
+
 
 
 /*******************************************************************************
@@ -48,6 +53,21 @@ void __ISR(_DMA1_VECTOR, IPL5SOFT) Dma1InterruptHandler(void)
 {
 	int	evFlags;				// event flags when getting the interrupt
 
+  uint2Bytes(frameCount,&frameCount_byte[0]);
+  uint2Bytes(timeStampUs,&timeStamp_byte[0]);    // Converting UINT32 timeStampUs to byte array
+
+  AdsPacket.buffer[4] = frameCount_byte[3];         // Rearranging from little endian to big endian
+  AdsPacket.buffer[5] = frameCount_byte[2];
+  AdsPacket.buffer[6] = frameCount_byte[1];
+  AdsPacket.buffer[7] = frameCount_byte[0];
+
+  AdsPacket.buffer[8] = timeStamp_byte[3];     // Rearranging from little endian to big endian
+  AdsPacket.buffer[9] = timeStamp_byte[2];
+  AdsPacket.buffer[10] = timeStamp_byte[1];
+  AdsPacket.buffer[11] = timeStamp_byte[0];
+  
+  frameCount++;
+  
 	INTClearFlag(INT_SOURCE_DMA(DMA_CHANNEL1));	// acknowledge the INT controller, we're servicing int
 
 	evFlags=DmaChnGetEvFlags(DMA_CHANNEL1);	// get the event flags
@@ -57,39 +77,34 @@ void __ISR(_DMA1_VECTOR, IPL5SOFT) Dma1InterruptHandler(void)
     	oDmaSpiTxIntFlag=1;
       DmaChnClrEvFlags(DMA_CHANNEL1, DMA_EV_BLOCK_DONE);
     }
-  SPI4_CS_HIGH;
-  oDataAvailableFlag = TRUE;
 }
 
-void __ISR(_DMA2_VECTOR, IPL5SOFT) Dma2InterruptHandler(void)
+void __ISR(_DMA2_VECTOR, IPL4SOFT) Dma2InterruptHandler(void)
 {
 	int	evFlags;				// event flags when getting the interrupt
 
 	INTClearFlag(INT_SOURCE_DMA(DMA_CHANNEL2));	// acknowledge the INT controller, we're servicing int
 
 	evFlags=DmaChnGetEvFlags(DMA_CHANNEL2);	// get the event flags
-
     if(evFlags&DMA_EV_BLOCK_DONE)
     { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
     	oDmaSpiRxIntFlag=1;
       DmaChnClrEvFlags(DMA_CHANNEL2, DMA_EV_BLOCK_DONE);
     }
-//  SPI4_CS_HIGH;
-//  oDataAvailableFlag = TRUE;
 }
 
-void __ISR(_DMA3_VECTOR, IPL5SOFT) Dma3InterruptHandler(void)
+void __ISR(_DMA3_VECTOR, IPL3SOFT) Dma3InterruptHandler(void)
 {
 	int	evFlags;				// event flags when getting the interrupt
-
+    
 	INTClearFlag(INT_SOURCE_DMA(DMA_CHANNEL3));	// release the interrupt in the INT controller, we're servicing int
 
 	evFlags=DmaChnGetEvFlags(DMA_CHANNEL3);	// get the event flags
-
+  
     if(evFlags&DMA_EV_BLOCK_DONE)
     { // just a sanity check. we enabled just the DMA_EV_BLOCK_DONE transfer done interrupt
-	oDmaUartTxIntFlag=1;
-	DmaChnClrEvFlags(DMA_CHANNEL3, DMA_EV_BLOCK_DONE);
+      oDmaUartTxIntFlag=1;
+      DmaChnClrEvFlags(DMA_CHANNEL3, DMA_EV_BLOCK_DONE);
     }
 }
 
@@ -102,7 +117,7 @@ void __ISR( _CHANGE_NOTICE_VECTOR, ipl7auto) ChangeNoticeInterruptHandler(void)
 {
   if(!Port.C.ReadBits(BIT_14))
   {
-    SPI4_CS_LOW;  
+    SPI4_CS_LOW;
     DmaChnStartTxfer(DMA_CHANNEL1,DMA_WAIT_NOT,0);
     DmaChnEnable(DMA_CHANNEL2); 
     oDataAvailableFlag = TRUE;
