@@ -61,51 +61,17 @@ int outputType = OUTPUT_8_CHAN;  // default to 8 channels
 void StateScheduler(void)
 {
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateMcuInit
+  // Current state = StateInit
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  if (pState == &StateMcuInit)
+  if (pState == &StateInit)
   {
-    if (MCUINIT_2_ADSINIT)
+    if (INIT_2_SERIALTRIGGER)
     {
-      pState = &StateAdsInit;  // Transition to StateAdsInit
+      pState = &StateSerialTrigger;  // Transition to StateAdsInit
     }
     else
     {
-      pState = &StateMcuInit; // Stay on current state
-    }
-  }
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateAdsInit
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateAdsInit)
-  {
-    if (ADSINIT_2_ADSCONFIG)
-    {
-      pState = &StateAdsConfig;  // StateAdsConfig
-    }
-    else
-    {
-      pState = &StateAdsInit;  //Stay on current state
-    }
-  }
-
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateAdsConfig
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateAdsConfig)
-  {
-    if (ADSCONFIG_2_ADSSTANDBY)
-    {
-      pState = &StateAdsStandBy;  // Transition to StateAdsStandBy
-    }
-    else if (ADSCONFIG_2_DEVSTATE)
-    {
-      pState = &StateDevState;  // Transition to StateDevState
-    }
-    else
-    {
-      pState = &StateAdsConfig;  //Stay on current state
+      pState = &StateInit; // Stay on current state
     }
   }
 
@@ -114,9 +80,9 @@ void StateScheduler(void)
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else if (pState == &StateAdsStandBy)
   {
-    if (ADSSTANDBY_2_ADSCONFIG)
+    if (ADSSTANDBY_2_SERIALTRIGGER)
     {
-      pState = &StateAdsConfig;  // Transition to StateAdsConfig
+      pState = &StateSerialTrigger;  // Transition to StateAdsConfig
     }
     else
     {
@@ -127,49 +93,34 @@ void StateScheduler(void)
     //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state = StateDevState
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateDevState)
+  else if (pState == &StateSerialTrigger)
   {
-    if (DEVSTATE_2_DATAACQ)
+    if (SERIALTRIGGER_2_ADSSTANDBY)
     {
-      pState = &StateDataAcq;  // Transition to StateAdsConfig
+      pState = &StateAdsStandBy;  // Transition to StateAdsConfig
     }
     else
     {
-      pState = &StateDevState;  // Stay on current state
+      pState = &StateSerialTrigger;  // Stay on current state
     }
   }
   
-    //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  // Current state = StateDataAcq
-  //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  else if (pState == &StateDataAcq)
-  {
-    if (DATAACQ_2_DEVSTATE)
-    {
-      pState = &StateDevState;  // Transition to StateAdsConfig
-    }
-    else
-    {
-      pState = &StateDataAcq;  // Stay on current state
-    }
-  }
-
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   // Current state = undetermined
   //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   else
   {
-    pState = &StateMcuInit;   // Go to Init state by default
+    pState = &StateInit;   // Go to Init state by default
   }
 }
 
 //===============================================================
-// Name     : StateMcuInit
-// Purpose  : Initialization routine of the microncontroller IOs.
+// Name     : StateInit
+// Purpose  : Initialization routine of the microncontroller IOs and ADS1299
 //===============================================================
-void StateMcuInit(void)
+void StateInit(void)
 {
-  oMcuInitFlag = 0; // MCU INIT STATE HAS NOT BEEN COMPLETED
+  oInitFlag = 0; // INIT STATE HAS NOT BEEN COMPLETED
   INT32 err = 0;
   INTDisableInterrupts();   // Disable all interrupts of the system.
   INIT_PORTS;
@@ -187,7 +138,7 @@ void StateMcuInit(void)
   INIT_UART;
   err = PrintToUart(UART4,"\f"  // Clear terminal
     "CochlEEG V1.0 - CRITIAS ECOLE DE TECHNOLOGIE SUPERIEURE \r\n"
-    "\tSoftware version 1.0\r\n"
+    "\tSoftware version 2.0\r\n"
     "Developped by MIKAEL DUCHARME\r\n");   
   err = PrintToUart(UART4,
     "*** PIC32MX795F512H initialization routine ***\r\n"
@@ -211,17 +162,6 @@ void StateMcuInit(void)
   LED_CHARGE_OFF;
   err = PrintToUart(UART4,"*** PIC32MX795F512H initialization routine COMPLETED ***\r\n");
   
-  oMcuInitFlag = 1; // MCU INIT STATE COMPLETED
-}
-
-//===============================================================
-// Name     : StateAdsInit
-// Purpose  : Initialization routine of the ADS1299
-//===============================================================
-void StateAdsInit(void)
-{
-  oAdsInitFlag = 0; // ADS1299 INIT ROUTINE HAS NOT BEEN COMPLETED 
-  INT32 err = 0;
   err = PrintToUart(UART4,"\r\n*** ADS1299 initialization routine ***\r\n");
   
   startFromScratch(); // Init ADS first time
@@ -234,17 +174,8 @@ void StateAdsInit(void)
   Timer.DelayMs(200);
   LED_EEGACQ_OFF;   // Flashing EEGAcq LED twice
   daisyPresent = FALSE;
-  oAdsInitFlag = 1; // ADS1299 INIT ROUTINE HAS BEEN COMPLETED 
-}
-
-//===============================================================
-// Name     : StateAdsConfig
-// Purpose  : 
-//===============================================================
-void StateAdsConfig(void)
-{
-  INT32 err = 0;
-  oDevStateFlag = 1;  
+  
+  oInitFlag = 1; // INIT STATE COMPLETED
 }
 
 //===============================================================
@@ -258,25 +189,13 @@ void StateAdsStandBy(void)
 }
 
 //===============================================================
-// Name     : StateDevState
+// Name     : StateSerialTrigger
 // Purpose  : 
 //===============================================================
-void StateDevState(void)
+void StateSerialTrigger(void)
 {
   oDataAcqCompletedFlag = 0;
   LED_DEBUG1_ON;
   LED_EEGACQ_OFF;
   eventSerial();
 }
-
-//===============================================================
-// Name     : StateDataAcq
-// Purpose  : 
-//===============================================================
-void StateDataAcq(void)
-{
-//  LED_DEBUG1_OFF;
-  oDataAvailableFlag = FALSE;
-  oDataAcqCompletedFlag = 1;
-}
-

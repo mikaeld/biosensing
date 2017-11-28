@@ -70,7 +70,7 @@ void main(void)
 //==============================================================================
 
 // State machine init
-	pState = &StateMcuInit;
+	pState = &StateInit;
   INT8 err = 0;
 	while(1)  //infinite loop
 	{

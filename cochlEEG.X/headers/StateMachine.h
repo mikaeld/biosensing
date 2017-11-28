@@ -30,15 +30,11 @@
 //==============================================================================
 // State Machine public function prototypes
 //==============================================================================
-void StateMcuInit     (void); // Initialization state for microcontroller
-void StateAdsInit     (void); // Initialization state for ADS1299
-void StateAdsConfig   (void); // Configuration state for ADS1299 (parameters
-                              // set from EEPROM, Serial Port, Buttons, etc.)
-void StateDataAcq     (void); // Data Acq, live data
-void StateAdsStandBy  (void); // ADS1299 is in standby
-void StateDevState    (void); // Development state (for coding purposes)
-void StateError       (void); // Error state, goes back to StateMcuInit()
-void StateScheduler   (void); // State Scheduler. Decides which state is next
+void StateInit          (void); // Initialization state for microcontroller and ADS1299
+void StateSerialTrigger (void); // Data Acq, live data
+void StateAdsStandBy    (void); // ADS1299 is in standby (unimplemented)
+void StateError         (void); // Error state, goes back to StateInit()
+void StateScheduler     (void); // State Scheduler. Decides which state is next
                               // depending on current state and flags. Used as a function
 
 
@@ -58,20 +54,12 @@ void StateScheduler   (void); // State Scheduler. Decides which state is next
 // to proper tests
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-//%%MCU INIT TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define MCUINIT_2_ADSINIT         oMcuInitFlag    // StateMcuInit to StateAdsInit
+//%%INIT TRANSITION%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#define INIT_2_SERIALTRIGGER         oInitFlag    // StateInit to SerialTrigger
 
-//%%ADS INIT TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define ADSINIT_2_ADSCONFIG       oAdsInitFlag    // StateAdsInit to StateAdsConfig
-
-//%%CONFIG TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 //%%%%%STANDBY MODE%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define ADSCONFIG_2_ADSSTANDBY    oStandByFlag    // StateAdsConfig to StateAdsStandBy
-#define ADSSTANDBY_2_ADSCONFIG    oWakeUpFlag     // StateAdsStandBy to StateAdsConfig
-
-//%%DEV STATE TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#define ADSCONFIG_2_DEVSTATE      oDevStateFlag   // StateAdsConfig to StateDevState
-#define DEVSTATE_2_DATAACQ         isRunning & oDataAvailableFlag // StateDevState to StateDataAcq
+#define SERIALTRIGGER_2_ADSSTANDBY    oStandByFlag    // StateAdsConfig to StateAdsStandBy
+#define ADSSTANDBY_2_SERIALTRIGGER    oWakeUpFlag     // StateAdsStandBy to StateAdsConfig
 
 //%%DATA ACQ TRANSITIONS%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 #define DATAACQ_2_DEVSTATE  oDataAcqCompletedFlag     // StateDataAcq to StateDevState
@@ -83,11 +71,9 @@ void StateScheduler   (void); // State Scheduler. Decides which state is next
 //==============================================================================
 void (*pState)(void);       // State pointer, used to navigate between states
 
-volatile  INT8  oMcuInitFlag          // Flag indication MCU init routine is done
-               ,oAdsInitFlag          // Flag indicating ADS1299 init routine is done
+volatile  INT8  oInitFlag          // Flag indication Init routine is done
                ,oStandByFlag          // Flag indicating StandBy cmd was issued to ADS1299
                ,oWakeUpFlag           // Flag indicating WakeUp cmd was issued to ADS1299 (resume from StandBy)
-               ,oDevStateFlag         // Flag indicating state used for development was called
                ,oDataAcqCompletedFlag // Flag indicating Data Acquisition sequence is done
                ;
 
