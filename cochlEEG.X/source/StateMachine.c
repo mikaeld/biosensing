@@ -21,7 +21,6 @@
 
 #include "..\headers\StateMachine.h"
 #include "..\headers\Interrupts.h"
-#include "..\headers\SkadiFunctions.h"
 #include "..\headers\Ads1299.h"
 #include "..\headers\StateFunctions.h"
 
@@ -36,7 +35,7 @@ extern volatile BOOL oDataAvailableFlag;
 //	OPENBCI INTEGRATION
 //==============================================================================
 
-BOOL is_running = FALSE;    // this flag is set in serialEvent on reciept of ascii prompt
+BOOL is_running = FALSE;    // this flag is set in serialEvent on receipt of ascii prompt
 // these are used to change individual channel settings from PC
 char currentChannelToSet;    // keep track of what channel we're loading settings for
 BOOL getChannelSettings = FALSE; // used to receive channel settings command
@@ -116,7 +115,7 @@ void StateScheduler(void)
 
 //===============================================================
 // Name     : StateInit
-// Purpose  : Initialization routine of the microncontroller IOs and ADS1299
+// Purpose  : Initialization routine of the microcontroller IOs and ADS1299
 //===============================================================
 void StateInit(void)
 {

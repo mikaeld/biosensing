@@ -24,8 +24,6 @@
 
 #include "..\headers\Setup.h"
 #include "..\headers\Interrupts.h"
-#include "..\headers\SkadiFunctions.h"
-
 
 //==============================================================================
 //	Variable Declaration
