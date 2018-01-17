@@ -1,10 +1,2 @@
-Ads1299.o
-Interrupts.o
-main.o
-Setup.o
-StateFunctions.o
-Ads1299.o.d
-Interrupts.o.d
-main.o.d
-Setup.o.d
-StateFunctions.o.d
+*.o
+*o.d
